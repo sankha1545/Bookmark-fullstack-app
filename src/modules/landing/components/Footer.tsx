@@ -73,10 +73,10 @@ export default function FooterSection() {
               Company
             </h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><Link href="#">About</Link></li>
-              <li><Link href="#">Blog</Link></li>
-              <li><Link href="#">Careers</Link></li>
-              <li><Link href="#">Contact</Link></li>
+              <li><Link href="/footer/about">About</Link></li>
+              <li><Link href="/footer/blog">Blog</Link></li>
+              <li><Link href="/footer/faq">FAQ</Link></li>
+              <li><Link href="/footer/contact">Contact</Link></li>
             </ul>
           </div>
 
@@ -86,10 +86,10 @@ export default function FooterSection() {
               Legal
             </h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><Link href="#">Privacy Policy</Link></li>
-              <li><Link href="#">Terms of Service</Link></li>
-              <li><Link href="#">Cookies</Link></li>
-              <li><Link href="#">Security</Link></li>
+              <li><Link href="/footer/privacy-policy">Privacy Policy</Link></li>
+              <li><Link href="/footer/terms-of-service">Terms of Service</Link></li>
+              <li><Link href="/footer/cookies">Cookies</Link></li>
+              <li><Link href="/footer/security">Security</Link></li>
             </ul>
           </div>
         </div>
