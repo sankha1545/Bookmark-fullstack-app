@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef } from "react"
 import { supabase } from "@/lib/supabase/client"
+import { motion, AnimatePresence } from "framer-motion"
 
 import BookmarkCard from "@/modules/dashboard/components/BookmarkCard"
 import BookmarkListView from "@/modules/dashboard/components/BookmarkListView"
@@ -32,17 +33,21 @@ type Bookmark = {
   created_at: string
 }
 
+const ITEMS_PER_PAGE = 6
+
 export default function DashboardPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
   const [loading, setLoading] = useState(true)
 
   const [search, setSearch] = useState("")
   const [activeTab, setActiveTab] = useState<"all" | "favourites">("all")
-  const [selectedTag, setSelectedTag] = useState<string>("all")
   const [sortBy, setSortBy] = useState("newest")
   const [viewMode, setViewMode] = useState<
     "cards" | "list" | "headlines" | "moodboard"
   >("cards")
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [direction, setDirection] = useState(0) // 1 = next, -1 = prev
 
   const [showAdd, setShowAdd] = useState(false)
   const [editing, setEditing] = useState<Bookmark | null>(null)
@@ -51,7 +56,7 @@ export default function DashboardPage() {
   const channelRef = useRef<BroadcastChannel | null>(null)
 
   /* ==============================
-     BROADCAST CHANNEL SETUP
+     BROADCAST CHANNEL
   ============================== */
   useEffect(() => {
     const channel = new BroadcastChannel("bookmarks")
@@ -74,17 +79,14 @@ export default function DashboardPage() {
       }
     }
 
-    return () => {
-      channel.close()
-    }
+    return () => channel.close()
   }, [])
 
   /* ==============================
-     FETCH BOOKMARKS
+     FETCH
   ============================== */
   async function fetchBookmarks() {
     setLoading(true)
-
     const { data } = await supabase
       .from("bookmarks")
       .select("*")
@@ -99,7 +101,7 @@ export default function DashboardPage() {
   }, [])
 
   /* ==============================
-     CREATE BOOKMARK
+     CREATE
   ============================== */
   async function createBookmark(title: string, url: string) {
     const {
@@ -108,17 +110,13 @@ export default function DashboardPage() {
 
     if (!user) return
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("bookmarks")
-      .insert({
-        title,
-        url,
-        user_id: user.id,
-      })
+      .insert({ title, url, user_id: user.id })
       .select()
       .single()
 
-    if (error) return
+    if (!data) return
 
     setBookmarks((prev) => {
       if (prev.find((b) => b.id === data.id)) return prev
@@ -129,20 +127,20 @@ export default function DashboardPage() {
       type: "BOOKMARK_CREATED",
       payload: data,
     })
+
+    setCurrentPage(1)
   }
 
   /* ==============================
-     DELETE BOOKMARK
+     DELETE
   ============================== */
   async function confirmDelete() {
     if (!deleting) return
 
-    const { error } = await supabase
+    await supabase
       .from("bookmarks")
       .delete()
       .eq("id", deleting.id)
-
-    if (error) return
 
     setBookmarks((prev) =>
       prev.filter((b) => b.id !== deleting.id)
@@ -157,7 +155,7 @@ export default function DashboardPage() {
   }
 
   /* ==============================
-     TOGGLE FAVOURITE
+     TOGGLE FAV
   ============================== */
   async function toggleFavourite(bookmark: Bookmark) {
     await supabase
@@ -180,12 +178,9 @@ export default function DashboardPage() {
   const filteredBookmarks = useMemo(() => {
     let list = [...bookmarks]
 
-    // Favourite filter
-    if (activeTab === "favourites") {
+    if (activeTab === "favourites")
       list = list.filter((b) => b.favourite)
-    }
 
-    // Search filter
     if (search.trim()) {
       const q = search.toLowerCase()
       list = list.filter(
@@ -196,7 +191,6 @@ export default function DashboardPage() {
       )
     }
 
-    // Sorting
     switch (sortBy) {
       case "az":
         list.sort((a, b) => a.title.localeCompare(b.title))
@@ -223,25 +217,68 @@ export default function DashboardPage() {
     return list
   }, [bookmarks, search, activeTab, sortBy])
 
-  function clearFilters() {
-    setSearch("")
-    setActiveTab("all")
-    setSortBy("newest")
-    setViewMode("cards")
+  /* ==============================
+     PAGINATION LOGIC
+  ============================== */
+  const totalBookmarks = filteredBookmarks.length
+  const totalPages = Math.max(
+    1,
+    Math.ceil(totalBookmarks / ITEMS_PER_PAGE)
+  )
+
+  const paginatedBookmarks = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredBookmarks.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredBookmarks, currentPage])
+
+  function goNext() {
+    if (currentPage < totalPages) {
+      setDirection(1)
+      setCurrentPage((prev) => prev + 1)
+    }
+  }
+
+  function goPrev() {
+    if (currentPage > 1) {
+      setDirection(-1)
+      setCurrentPage((prev) => prev - 1)
+    }
+  }
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [filteredBookmarks])
+
+  /* ==============================
+     ANIMATION VARIANTS
+  ============================== */
+  const variants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 80 : -80,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -80 : 80,
+      opacity: 0,
+    }),
   }
 
   /* ==============================
      UI
   ============================== */
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 overflow-hidden">
 
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-semibold">
-            Your Bookmarks
-          </h1>
-        </div>
+        <h1 className="text-3xl font-semibold">
+          Your Bookmarks
+        </h1>
         <Button onClick={() => setShowAdd(true)}>
           + Add Bookmark
         </Button>
@@ -253,13 +290,14 @@ export default function DashboardPage() {
         <Input
           placeholder="Search..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setCurrentPage(1)
+          }}
           className="max-w-sm"
         />
 
         <div className="flex gap-3 flex-wrap">
-
-          {/* VIEW MODE */}
           <Select value={viewMode} onValueChange={(v: any) => setViewMode(v)}>
             <SelectTrigger className="w-36">
               <SelectValue />
@@ -272,8 +310,10 @@ export default function DashboardPage() {
             </SelectContent>
           </Select>
 
-          {/* FAV FILTER */}
-          <Select value={activeTab} onValueChange={(v: any) => setActiveTab(v)}>
+          <Select value={activeTab} onValueChange={(v: any) => {
+            setActiveTab(v)
+            setCurrentPage(1)
+          }}>
             <SelectTrigger className="w-36">
               <SelectValue />
             </SelectTrigger>
@@ -283,8 +323,10 @@ export default function DashboardPage() {
             </SelectContent>
           </Select>
 
-          {/* SORT FILTER */}
-          <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+          <Select value={sortBy} onValueChange={(v: any) => {
+            setSortBy(v)
+            setCurrentPage(1)
+          }}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
@@ -295,60 +337,98 @@ export default function DashboardPage() {
               <SelectItem value="oldest">Oldest-Newest</SelectItem>
             </SelectContent>
           </Select>
-
-          <Button variant="outline" onClick={clearFilters}>
-            Clear
-          </Button>
-
         </div>
       </div>
 
-      {/* CONTENT AREA */}
+      {/* CONTENT */}
       {loading ? (
         <div>Loading bookmarks...</div>
-      ) : filteredBookmarks.length === 0 ? (
+      ) : totalBookmarks === 0 ? (
         <div>No bookmarks found.</div>
       ) : (
         <>
-          {viewMode === "cards" && (
-            <div className="grid md:grid-cols-3 gap-6">
-              {filteredBookmarks.map((bookmark) => (
-                <BookmarkCard
-                  key={bookmark.id}
-                  bookmark={bookmark}
-                  onEdit={() => setEditing(bookmark)}
-                  onDelete={() => setDeleting(bookmark)}
-                  onToggleFavourite={() => toggleFavourite(bookmark)}
+          <AnimatePresence custom={direction} mode="wait">
+            <motion.div
+              key={currentPage}
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 300, damping: 25 },
+                opacity: { duration: 0.2 },
+              }}
+            >
+              {viewMode === "cards" && (
+                <div className="grid md:grid-cols-3 gap-6">
+                  {paginatedBookmarks.map((bookmark) => (
+                    <BookmarkCard
+                      key={bookmark.id}
+                      bookmark={bookmark}
+                      onEdit={() => setEditing(bookmark)}
+                      onDelete={() => setDeleting(bookmark)}
+                      onToggleFavourite={() => toggleFavourite(bookmark)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {viewMode === "list" && (
+                <BookmarkListView
+                  bookmarks={paginatedBookmarks}
+                  onToggleFavourite={toggleFavourite}
+                  onEdit={(b) => setEditing(b)}
+                  onDelete={(b) => setDeleting(b)}
                 />
-              ))}
+              )}
+
+              {viewMode === "headlines" && (
+                <BookmarkHeadlineView
+                  bookmarks={paginatedBookmarks}
+                  onEdit={(b) => setEditing(b)}
+                  onDelete={(b) => setDeleting(b)}
+                />
+              )}
+
+              {viewMode === "moodboard" && (
+                <BookmarkMoodboardView
+                  bookmarks={paginatedBookmarks}
+                  onEdit={(b) => setEditing(b)}
+                  onDelete={(b) => setDeleting(b)}
+                  onToggleFavourite={toggleFavourite}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* PAGINATION CONTROLS */}
+          <div className="flex justify-between items-center pt-8">
+
+            <div className="text-sm text-muted-foreground">
+              {totalBookmarks} bookmarks • {totalPages} pages
             </div>
-          )}
 
-          {viewMode === "list" && (
-            <BookmarkListView
-              bookmarks={filteredBookmarks}
-              onToggleFavourite={toggleFavourite}
-              onEdit={(b) => setEditing(b)}
-              onDelete={(b) => setDeleting(b)}
-            />
-          )}
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={goPrev}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
 
-          {viewMode === "headlines" && (
-            <BookmarkHeadlineView
-              bookmarks={filteredBookmarks}
-              onEdit={(b) => setEditing(b)}
-              onDelete={(b) => setDeleting(b)}
-            />
-          )}
+              <span className="font-medium">
+                Page {currentPage} of {totalPages}
+              </span>
 
-          {viewMode === "moodboard" && (
-            <BookmarkMoodboardView
-              bookmarks={filteredBookmarks}
-              onEdit={(b) => setEditing(b)}
-              onDelete={(b) => setDeleting(b)}
-              onToggleFavourite={toggleFavourite}
-            />
-          )}
+              <Button
+                onClick={goNext}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
         </>
       )}
 
@@ -373,7 +453,6 @@ export default function DashboardPage() {
           onConfirm={confirmDelete}
         />
       )}
-
     </div>
   )
 }
