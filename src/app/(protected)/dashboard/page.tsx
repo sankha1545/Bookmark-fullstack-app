@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import { supabase } from "@/lib/supabase/client"
 
 import BookmarkCard from "@/modules/dashboard/components/BookmarkCard"
@@ -36,7 +36,6 @@ export default function DashboardPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
   const [loading, setLoading] = useState(true)
 
-  /* FILTER STATES */
   const [search, setSearch] = useState("")
   const [activeTab, setActiveTab] = useState<"all" | "favourites">("all")
   const [selectedTag, setSelectedTag] = useState<string>("all")
@@ -45,10 +44,40 @@ export default function DashboardPage() {
     "cards" | "list" | "headlines" | "moodboard"
   >("cards")
 
-  /* MODALS */
   const [showAdd, setShowAdd] = useState(false)
   const [editing, setEditing] = useState<Bookmark | null>(null)
   const [deleting, setDeleting] = useState<Bookmark | null>(null)
+
+  const channelRef = useRef<BroadcastChannel | null>(null)
+
+  /* ==============================
+     SETUP BROADCAST CHANNEL
+  ============================== */
+  useEffect(() => {
+    const channel = new BroadcastChannel("bookmarks")
+    channelRef.current = channel
+
+    channel.onmessage = (event) => {
+      const { type, payload } = event.data
+
+      if (type === "BOOKMARK_CREATED") {
+        setBookmarks((prev) => {
+          if (prev.find((b) => b.id === payload.id)) return prev
+          return [payload, ...prev]
+        })
+      }
+
+      if (type === "BOOKMARK_DELETED") {
+        setBookmarks((prev) =>
+          prev.filter((b) => b.id !== payload.id)
+        )
+      }
+    }
+
+    return () => {
+      channel.close()
+    }
+  }, [])
 
   /* ==============================
      FETCH BOOKMARKS
@@ -56,15 +85,12 @@ export default function DashboardPage() {
   async function fetchBookmarks() {
     setLoading(true)
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("bookmarks")
       .select("*")
       .order("created_at", { ascending: false })
 
-    if (!error) {
-      setBookmarks(data || [])
-    }
-
+    setBookmarks(data || [])
     setLoading(false)
   }
 
@@ -73,7 +99,7 @@ export default function DashboardPage() {
   }, [])
 
   /* ==============================
-     CREATE BOOKMARK (NEW FIX)
+     CREATE BOOKMARK
   ============================== */
   async function createBookmark(title: string, url: string) {
     const {
@@ -97,73 +123,88 @@ export default function DashboardPage() {
       return
     }
 
-    // 🔥 Update current tab instantly
+    // Update current tab
     setBookmarks((prev) => {
-      if (prev.find((b) => b.id === data.id)) {
-        return prev
-      }
+      if (prev.find((b) => b.id === data.id)) return prev
       return [data, ...prev]
     })
 
-    // 🔥 Sync other tabs
-    localStorage.setItem(
-      "bookmark_added",
-      JSON.stringify(data)
-    )
-    setTimeout(() => {
-      localStorage.removeItem("bookmark_added")
-    }, 300)
+    // Broadcast to other tabs
+    channelRef.current?.postMessage({
+      type: "BOOKMARK_CREATED",
+      payload: data,
+    })
   }
 
   /* ==============================
-     STORAGE LISTENER (TAB SYNC)
+     DELETE BOOKMARK
   ============================== */
-  useEffect(() => {
-    function handleStorage(e: StorageEvent) {
-      if (e.key === "bookmark_added" && e.newValue) {
-        const newBookmark = JSON.parse(e.newValue)
+  async function confirmDelete() {
+    if (!deleting) return
 
-        setBookmarks((prev) => {
-          if (prev.find((b) => b.id === newBookmark.id)) {
-            return prev
-          }
-          return [newBookmark, ...prev]
-        })
-      }
+    const { error } = await supabase
+      .from("bookmarks")
+      .delete()
+      .eq("id", deleting.id)
+
+    if (error) {
+      console.error(error)
+      return
     }
 
-    window.addEventListener("storage", handleStorage)
-    return () => {
-      window.removeEventListener("storage", handleStorage)
-    }
-  }, [])
+    // Update current tab
+    setBookmarks((prev) =>
+      prev.filter((b) => b.id !== deleting.id)
+    )
+
+    // Broadcast to other tabs
+    channelRef.current?.postMessage({
+      type: "BOOKMARK_DELETED",
+      payload: { id: deleting.id },
+    })
+
+    setDeleting(null)
+  }
 
   /* ==============================
-     EXTRACT UNIQUE TAGS
+     TOGGLE FAVOURITE
   ============================== */
-  const allTags = useMemo(() => {
-    const tags = new Set<string>()
-    bookmarks.forEach((b) => {
-      b.tags?.forEach((tag) => tags.add(tag))
-    })
-    return Array.from(tags)
-  }, [bookmarks])
+  async function toggleFavourite(bookmark: Bookmark) {
+    await supabase
+      .from("bookmarks")
+      .update({ favourite: !bookmark.favourite })
+      .eq("id", bookmark.id)
+
+    setBookmarks((prev) =>
+      prev.map((b) =>
+        b.id === bookmark.id
+          ? { ...b, favourite: !bookmark.favourite }
+          : b
+      )
+    )
+  }
 
   /* ==============================
      FILTER + SORT
   ============================== */
+  const allTags = useMemo(() => {
+    const tags = new Set<string>()
+    bookmarks.forEach((b) =>
+      b.tags?.forEach((tag) => tags.add(tag))
+    )
+    return Array.from(tags)
+  }, [bookmarks])
+
   const filteredBookmarks = useMemo(() => {
     let list = [...bookmarks]
 
-    if (activeTab === "favourites") {
+    if (activeTab === "favourites")
       list = list.filter((b) => b.favourite)
-    }
 
-    if (selectedTag !== "all") {
+    if (selectedTag !== "all")
       list = list.filter((b) =>
         b.tags?.includes(selectedTag)
       )
-    }
 
     if (search.trim()) {
       const q = search.toLowerCase()
@@ -206,45 +247,6 @@ export default function DashboardPage() {
     return list
   }, [bookmarks, search, activeTab, selectedTag, sortBy])
 
-  /* ==============================
-     TOGGLE FAVOURITE
-  ============================== */
-  async function toggleFavourite(bookmark: Bookmark) {
-    await supabase
-      .from("bookmarks")
-      .update({ favourite: !bookmark.favourite })
-      .eq("id", bookmark.id)
-
-    setBookmarks((prev) =>
-      prev.map((b) =>
-        b.id === bookmark.id
-          ? { ...b, favourite: !bookmark.favourite }
-          : b
-      )
-    )
-  }
-
-  /* ==============================
-     DELETE
-  ============================== */
-  async function confirmDelete() {
-    if (!deleting) return
-
-    await supabase
-      .from("bookmarks")
-      .delete()
-      .eq("id", deleting.id)
-
-    setBookmarks((prev) =>
-      prev.filter((b) => b.id !== deleting.id)
-    )
-
-    setDeleting(null)
-  }
-
-  /* ==============================
-     CLEAR FILTERS
-  ============================== */
   function clearFilters() {
     setSearch("")
     setSelectedTag("all")
@@ -275,7 +277,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-wrap gap-4 items-center justify-between">
-
         <Input
           placeholder="Search..."
           value={search}
@@ -284,7 +285,6 @@ export default function DashboardPage() {
         />
 
         <div className="flex gap-3 flex-wrap">
-
           <Select value={viewMode} onValueChange={(v: any) => setViewMode(v)}>
             <SelectTrigger className="w-36">
               <SelectValue />
@@ -307,36 +307,9 @@ export default function DashboardPage() {
             </SelectContent>
           </Select>
 
-          <Select value={selectedTag} onValueChange={setSelectedTag}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Tag" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Tags</SelectItem>
-              {allTags.map((tag) => (
-                <SelectItem key={tag} value={tag}>
-                  #{tag}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="oldest">Oldest</SelectItem>
-              <SelectItem value="az">Title A-Z</SelectItem>
-              <SelectItem value="za">Title Z-A</SelectItem>
-            </SelectContent>
-          </Select>
-
           <Button variant="outline" onClick={clearFilters}>
             Clear
           </Button>
-
         </div>
       </div>
 
@@ -345,47 +318,17 @@ export default function DashboardPage() {
       ) : filteredBookmarks.length === 0 ? (
         <div>No bookmarks found.</div>
       ) : (
-        <>
-          {viewMode === "cards" && (
-            <div className="grid md:grid-cols-3 gap-6">
-              {filteredBookmarks.map((bookmark) => (
-                <BookmarkCard
-                  key={bookmark.id}
-                  bookmark={bookmark}
-                  onEdit={() => setEditing(bookmark)}
-                  onDelete={() => setDeleting(bookmark)}
-                  onToggleFavourite={() => toggleFavourite(bookmark)}
-                />
-              ))}
-            </div>
-          )}
-
-          {viewMode === "list" && (
-            <BookmarkListView
-              bookmarks={filteredBookmarks}
-              onToggleFavourite={toggleFavourite}
-              onEdit={(b) => setEditing(b)}
-              onDelete={(b) => setDeleting(b)}
+        <div className="grid md:grid-cols-3 gap-6">
+          {filteredBookmarks.map((bookmark) => (
+            <BookmarkCard
+              key={bookmark.id}
+              bookmark={bookmark}
+              onEdit={() => setEditing(bookmark)}
+              onDelete={() => setDeleting(bookmark)}
+              onToggleFavourite={() => toggleFavourite(bookmark)}
             />
-          )}
-
-          {viewMode === "headlines" && (
-            <BookmarkHeadlineView
-              bookmarks={filteredBookmarks}
-              onEdit={(b) => setEditing(b)}
-              onDelete={(b) => setDeleting(b)}
-            />
-          )}
-
-          {viewMode === "moodboard" && (
-            <BookmarkMoodboardView
-              bookmarks={filteredBookmarks}
-              onEdit={(b) => setEditing(b)}
-              onDelete={(b) => setDeleting(b)}
-              onToggleFavourite={toggleFavourite}
-            />
-          )}
-        </>
+          ))}
+        </div>
       )}
 
       <AddBookmarkModal
