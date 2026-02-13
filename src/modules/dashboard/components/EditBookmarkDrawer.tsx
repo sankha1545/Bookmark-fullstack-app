@@ -21,6 +21,7 @@ export default function EditBookmarkDrawer({
   const [url, setUrl] = useState("")
   const [tags, setTags] = useState("")
   const [note, setNote] = useState("")
+ const [description, setDescription] = useState("")
 
   useEffect(() => {
     if (bookmark) {
@@ -28,6 +29,7 @@ export default function EditBookmarkDrawer({
       setUrl(bookmark.url)
       setTags(bookmark.tags?.join(", ") || "")
       setNote(bookmark.note || "")
+      setDescription(bookmark.description)
     }
   }, [bookmark])
 
@@ -39,6 +41,7 @@ export default function EditBookmarkDrawer({
         url,
         tags: tags.split(",").map((t) => t.trim()),
         note,
+        description,
       })
       .eq("id", bookmark.id)
 
@@ -95,9 +98,18 @@ export default function EditBookmarkDrawer({
 
           <div>
             <label className="text-sm">Note</label>
-            <textarea
+            <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
+              className="w-full border rounded-md p-2"
+              
+            />
+          </div>
+           <div>
+            <label className="text-sm">Description</label>
+            <textarea
+              value={note}
+              onChange={(e) => setDescription(e.target.value)}
               className="w-full border rounded-md p-2"
               rows={4}
             />

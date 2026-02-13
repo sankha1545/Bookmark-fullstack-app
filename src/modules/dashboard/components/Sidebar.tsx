@@ -5,8 +5,6 @@ import { usePathname } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import {
   LayoutDashboard,
-  Star,
-  BarChart,
   Settings,
   LogOut,
 } from "lucide-react"
@@ -56,8 +54,7 @@ async function confirmLogout() {
 
           <nav className="px-4 space-y-2 text-sm">
             {navItem("/dashboard", "All Bookmarks", LayoutDashboard)}
-            {navItem("/dashboard/favorites", "Favorites", Star)}
-            {navItem("/dashboard/analytics", "Analytics", BarChart)}
+            
             {navItem("/dashboard/settings", "Settings", Settings)}
           </nav>
         </div>

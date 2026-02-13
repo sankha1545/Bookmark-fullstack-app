@@ -38,10 +38,7 @@ export default function Topbar({
       </div>
 
       {/* ADD BUTTON */}
-      <Button onClick={() => setOpen(true)}>
-        <Plus size={16} className="mr-2" />
-        New Bookmark
-      </Button>
+     
 
       <AddBookmarkModal
         open={open}
