@@ -53,20 +53,90 @@ export default function DashboardPage() {
   /* ==============================
      FETCH BOOKMARKS
   ============================== */
+  async function fetchBookmarks() {
+    setLoading(true)
+
+    const { data, error } = await supabase
+      .from("bookmarks")
+      .select("*")
+      .order("created_at", { ascending: false })
+
+    if (!error) {
+      setBookmarks(data || [])
+    }
+
+    setLoading(false)
+  }
+
   useEffect(() => {
     fetchBookmarks()
   }, [])
 
-  async function fetchBookmarks() {
-    setLoading(true)
+  /* ==============================
+     CREATE BOOKMARK (NEW FIX)
+  ============================== */
+  async function createBookmark(title: string, url: string) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    const { data } = await supabase
+    if (!user) return
+
+    const { data, error } = await supabase
       .from("bookmarks")
-      .select("*")
+      .insert({
+        title,
+        url,
+        user_id: user.id,
+      })
+      .select()
+      .single()
 
-    setBookmarks(data || [])
-    setLoading(false)
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    // 🔥 Update current tab instantly
+    setBookmarks((prev) => {
+      if (prev.find((b) => b.id === data.id)) {
+        return prev
+      }
+      return [data, ...prev]
+    })
+
+    // 🔥 Sync other tabs
+    localStorage.setItem(
+      "bookmark_added",
+      JSON.stringify(data)
+    )
+    setTimeout(() => {
+      localStorage.removeItem("bookmark_added")
+    }, 300)
   }
+
+  /* ==============================
+     STORAGE LISTENER (TAB SYNC)
+  ============================== */
+  useEffect(() => {
+    function handleStorage(e: StorageEvent) {
+      if (e.key === "bookmark_added" && e.newValue) {
+        const newBookmark = JSON.parse(e.newValue)
+
+        setBookmarks((prev) => {
+          if (prev.find((b) => b.id === newBookmark.id)) {
+            return prev
+          }
+          return [newBookmark, ...prev]
+        })
+      }
+    }
+
+    window.addEventListener("storage", handleStorage)
+    return () => {
+      window.removeEventListener("storage", handleStorage)
+    }
+  }, [])
 
   /* ==============================
      EXTRACT UNIQUE TAGS
@@ -85,19 +155,16 @@ export default function DashboardPage() {
   const filteredBookmarks = useMemo(() => {
     let list = [...bookmarks]
 
-    /* FAV TAB */
     if (activeTab === "favourites") {
       list = list.filter((b) => b.favourite)
     }
 
-    /* TAG FILTER */
     if (selectedTag !== "all") {
       list = list.filter((b) =>
         b.tags?.includes(selectedTag)
       )
     }
 
-    /* SEARCH */
     if (search.trim()) {
       const q = search.toLowerCase()
       list = list.filter(
@@ -109,7 +176,6 @@ export default function DashboardPage() {
       )
     }
 
-    /* SORTING */
     switch (sortBy) {
       case "newest":
         list.sort(
@@ -193,7 +259,6 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
 
-      {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-semibold">
@@ -209,7 +274,6 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      {/* FILTER BAR */}
       <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-wrap gap-4 items-center justify-between">
 
         <Input
@@ -221,11 +285,7 @@ export default function DashboardPage() {
 
         <div className="flex gap-3 flex-wrap">
 
-          {/* VIEW MODE */}
-          <Select
-            value={viewMode}
-            onValueChange={(v: any) => setViewMode(v)}
-          >
+          <Select value={viewMode} onValueChange={(v: any) => setViewMode(v)}>
             <SelectTrigger className="w-36">
               <SelectValue />
             </SelectTrigger>
@@ -237,11 +297,7 @@ export default function DashboardPage() {
             </SelectContent>
           </Select>
 
-          {/* FAV TAB */}
-          <Select
-            value={activeTab}
-            onValueChange={(v: any) => setActiveTab(v)}
-          >
+          <Select value={activeTab} onValueChange={(v: any) => setActiveTab(v)}>
             <SelectTrigger className="w-36">
               <SelectValue />
             </SelectTrigger>
@@ -251,11 +307,7 @@ export default function DashboardPage() {
             </SelectContent>
           </Select>
 
-          {/* TAG FILTER */}
-          <Select
-            value={selectedTag}
-            onValueChange={setSelectedTag}
-          >
+          <Select value={selectedTag} onValueChange={setSelectedTag}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Tag" />
             </SelectTrigger>
@@ -269,11 +321,7 @@ export default function DashboardPage() {
             </SelectContent>
           </Select>
 
-          {/* SORT */}
-          <Select
-            value={sortBy}
-            onValueChange={setSortBy}
-          >
+          <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
@@ -292,7 +340,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* CONTENT AREA */}
       {loading ? (
         <div>Loading bookmarks...</div>
       ) : filteredBookmarks.length === 0 ? (
@@ -307,48 +354,44 @@ export default function DashboardPage() {
                   bookmark={bookmark}
                   onEdit={() => setEditing(bookmark)}
                   onDelete={() => setDeleting(bookmark)}
-                  onToggleFavourite={() =>
-                    toggleFavourite(bookmark)
-                  }
+                  onToggleFavourite={() => toggleFavourite(bookmark)}
                 />
               ))}
             </div>
           )}
 
-        {viewMode === "list" && (
-  <BookmarkListView
-    bookmarks={filteredBookmarks}
-    onToggleFavourite={toggleFavourite}
-    onEdit={(b) => setEditing(b)}
-    onDelete={(b) => setDeleting(b)}
-  />
-)}
+          {viewMode === "list" && (
+            <BookmarkListView
+              bookmarks={filteredBookmarks}
+              onToggleFavourite={toggleFavourite}
+              onEdit={(b) => setEditing(b)}
+              onDelete={(b) => setDeleting(b)}
+            />
+          )}
 
-{viewMode === "headlines" && (
-  <BookmarkHeadlineView
-    bookmarks={filteredBookmarks}
-    onEdit={(b) => setEditing(b)}
-    onDelete={(b) => setDeleting(b)}
-  />
-)}
+          {viewMode === "headlines" && (
+            <BookmarkHeadlineView
+              bookmarks={filteredBookmarks}
+              onEdit={(b) => setEditing(b)}
+              onDelete={(b) => setDeleting(b)}
+            />
+          )}
 
-{viewMode === "moodboard" && (
-  <BookmarkMoodboardView
-    bookmarks={filteredBookmarks}
-    onEdit={(b) => setEditing(b)}
-    onDelete={(b) => setDeleting(b)}
-    onToggleFavourite={toggleFavourite}
-  />
-)}
-
+          {viewMode === "moodboard" && (
+            <BookmarkMoodboardView
+              bookmarks={filteredBookmarks}
+              onEdit={(b) => setEditing(b)}
+              onDelete={(b) => setDeleting(b)}
+              onToggleFavourite={toggleFavourite}
+            />
+          )}
         </>
       )}
 
-      {/* MODALS */}
       <AddBookmarkModal
         open={showAdd}
         onClose={() => setShowAdd(false)}
-        onSuccess={fetchBookmarks}
+        onCreate={createBookmark}
       />
 
       {editing && (

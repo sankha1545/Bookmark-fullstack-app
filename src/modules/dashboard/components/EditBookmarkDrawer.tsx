@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { X } from "lucide-react"
+import { X, Loader2 } from "lucide-react"
 
 type Props = {
   bookmark: any
@@ -19,35 +19,118 @@ export default function EditBookmarkDrawer({
 }: Props) {
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
-  const [tags, setTags] = useState("")
+//   const [tags, setTags] = useState("")
   const [note, setNote] = useState("")
- const [description, setDescription] = useState("")
+  const [description, setDescription] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  /* ================================
+     LOAD EXISTING DATA
+  ================================= */
 
   useEffect(() => {
     if (bookmark) {
-      setTitle(bookmark.title)
-      setUrl(bookmark.url)
-      setTags(bookmark.tags?.join(", ") || "")
+      setTitle(bookmark.title || "")
+      setUrl(bookmark.url || "")
+    //   setTags(bookmark.tags?.join(", ") || "")
       setNote(bookmark.note || "")
-      setDescription(bookmark.description)
+      setDescription(bookmark.description || "")
     }
   }, [bookmark])
 
-  async function handleUpdate() {
-    await supabase
+  /* ================================
+     UPDATE BOOKMARK
+  ================================= */
+
+async function handleUpdate() {
+  if (!bookmark?.id) return
+
+  setLoading(true)
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    alert("User not authenticated")
+    setLoading(false)
+    return
+  }
+
+  try {
+    const cleanedTags = tags
+      ? tags
+          .split(",")
+          .map((t) => t.trim().toLowerCase())
+          .filter(Boolean)
+      : []
+
+    /* 1️⃣ Update bookmark */
+    const { error: bookmarkError } = await supabase
       .from("bookmarks")
       .update({
         title,
         url,
-        tags: tags.split(",").map((t) => t.trim()),
         note,
         description,
+        updated_at: new Date().toISOString(),
       })
       .eq("id", bookmark.id)
+      .eq("user_id", user.id)
+
+    if (bookmarkError) throw bookmarkError
+
+    /* 2️⃣ Delete old relations */
+    const { error: deleteError } = await supabase
+      .from("bookmark_tags")
+      .delete()
+      .eq("bookmark_id", bookmark.id)
+
+    if (deleteError) throw deleteError
+
+    /* 3️⃣ Insert tags + relations */
+    if (cleanedTags.length > 0) {
+      for (const tagName of cleanedTags) {
+        // Upsert tag (avoids duplicates)
+        const { data: tagData, error: tagError } = await supabase
+          .from("tags")
+          .upsert(
+            { name: tagName }, 
+            { onConflict: "name" }
+          )
+          .select()
+          .single()
+
+        if (tagError) throw tagError
+
+        // Insert relation
+        const { error: relationError } = await supabase
+          .from("bookmark_tags")
+          .insert({
+            bookmark_id: bookmark.id,
+            tag_id: tagData.id,
+          })
+
+        if (relationError) throw relationError
+      }
+    }
 
     onSuccess()
     onClose()
+
+  } catch (err) {
+    console.error("Update failed:", err)
+    alert("Failed to update bookmark")
+  } finally {
+    setLoading(false)
   }
+}
+
+
+
+  /* ================================
+     UI
+  ================================= */
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -59,7 +142,7 @@ export default function EditBookmarkDrawer({
       />
 
       {/* Drawer */}
-      <div className="w-full max-w-md bg-white p-6 shadow-2xl overflow-auto">
+      <div className="w-full max-w-md bg-white dark:bg-neutral-950 p-6 shadow-2xl overflow-auto">
 
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold">
@@ -72,50 +155,66 @@ export default function EditBookmarkDrawer({
 
         <div className="space-y-4">
 
+          {/* Title */}
           <div>
-            <label className="text-sm">Title</label>
+            <label className="text-sm font-medium">Title</label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
 
+          {/* URL */}
           <div>
-            <label className="text-sm">URL</label>
+            <label className="text-sm font-medium">URL</label>
             <Input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />
           </div>
 
-          <div>
-            <label className="text-sm">Tags (comma separated)</label>
+          {/* Tags */}
+          {/* <div>
+            <label className="text-sm font-medium">
+              Tags (comma separated)
+            </label>
             <Input
               value={tags}
               onChange={(e) => setTags(e.target.value)}
             />
-          </div>
+          </div> */}
 
+          {/* Note */}
           <div>
-            <label className="text-sm">Note</label>
-            <Input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="w-full border rounded-md p-2"
-              
-            />
-          </div>
-           <div>
-            <label className="text-sm">Description</label>
+            <label className="text-sm font-medium">Note</label>
             <textarea
               value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="w-full border rounded-md p-2 bg-transparent"
+              rows={3}
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="text-sm font-medium">Description</label>
+            <textarea
+              value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full border rounded-md p-2"
+              className="w-full border rounded-md p-2 bg-transparent"
               rows={4}
             />
           </div>
 
-          <Button onClick={handleUpdate} className="w-full">
+          {/* Save Button */}
+          <Button
+            onClick={handleUpdate}
+            disabled={loading}
+            className="w-full"
+          >
+            {loading && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
             Save Changes
           </Button>
 

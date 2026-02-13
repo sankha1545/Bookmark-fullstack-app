@@ -1,65 +1,65 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { X } from "lucide-react"
+import { X, Loader2 } from "lucide-react"
 
 interface Props {
   open: boolean
-  setOpen: (value: boolean) => void
+  onClose: () => void
+  onCreate: (title: string, url: string) => Promise<void>
 }
 
-export default function AddBookmarkModal({ open, setOpen }: Props) {
+export default function AddBookmarkModal({
+  open,
+  onClose,
+  onCreate,
+}: Props) {
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Close on ESC
+  /* ESC CLOSE */
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false)
+      if (e.key === "Escape") onClose()
     }
-    if (open) window.addEventListener("keydown", handleKey)
+
+    if (open) {
+      window.addEventListener("keydown", handleKey)
+    }
+
     return () => window.removeEventListener("keydown", handleKey)
-  }, [open, setOpen])
+  }, [open, onClose])
 
   if (!open) return null
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    if (!title.trim() || !url.trim()) return
+    if (!title.trim() || !url.trim()) {
+      setError("Title and URL are required")
+      return
+    }
 
     try {
       setLoading(true)
+      setError(null)
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      // 🔥 Delegate creation to Dashboard
+      await onCreate(title.trim(), url.trim())
 
-      if (!user) return
-
-      const { error } = await supabase.from("bookmarks").insert([
-        {
-          title,
-          url,
-          user_id: user.id,
-        },
-      ])
-
-      if (error) throw error
-
-      // Reset
+      // Reset form
       setTitle("")
       setUrl("")
-      setOpen(false)
 
-      // Optional: refresh page
-      window.location.reload()
-    } catch (err) {
-      console.error("Insert error:", err)
+      onClose()
+
+    } catch (err: any) {
+      console.error("Create error:", err)
+      setError(err.message || "Failed to add bookmark")
     } finally {
       setLoading(false)
     }
@@ -67,14 +67,16 @@ export default function AddBookmarkModal({ open, setOpen }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
+
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={() => setOpen(false)}
+        onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative bg-white w-full max-w-md rounded-2xl shadow-xl p-8 z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-white dark:bg-neutral-950 w-full max-w-md rounded-2xl shadow-xl p-8 z-10 animate-in fade-in zoom-in-95 duration-200">
+
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold">
@@ -82,7 +84,7 @@ export default function AddBookmarkModal({ open, setOpen }: Props) {
           </h2>
 
           <button
-            onClick={() => setOpen(false)}
+            onClick={onClose}
             className="text-muted-foreground hover:text-foreground"
           >
             <X size={18} />
@@ -91,6 +93,13 @@ export default function AddBookmarkModal({ open, setOpen }: Props) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
+
+          {error && (
+            <div className="text-sm text-red-500 bg-red-50 p-2 rounded-md">
+              {error}
+            </div>
+          )}
+
           <div>
             <label className="text-sm font-medium">
               Title
@@ -117,13 +126,16 @@ export default function AddBookmarkModal({ open, setOpen }: Props) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={onClose}
             >
               Cancel
             </Button>
 
             <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Bookmark"}
+              {loading && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Add Bookmark
             </Button>
           </div>
         </form>
