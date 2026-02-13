@@ -51,7 +51,7 @@ export default function DashboardPage() {
   const channelRef = useRef<BroadcastChannel | null>(null)
 
   /* ==============================
-     SETUP BROADCAST CHANNEL
+     BROADCAST CHANNEL SETUP
   ============================== */
   useEffect(() => {
     const channel = new BroadcastChannel("bookmarks")
@@ -118,18 +118,13 @@ export default function DashboardPage() {
       .select()
       .single()
 
-    if (error) {
-      console.error(error)
-      return
-    }
+    if (error) return
 
-    // Update current tab
     setBookmarks((prev) => {
       if (prev.find((b) => b.id === data.id)) return prev
       return [data, ...prev]
     })
 
-    // Broadcast to other tabs
     channelRef.current?.postMessage({
       type: "BOOKMARK_CREATED",
       payload: data,
@@ -147,17 +142,12 @@ export default function DashboardPage() {
       .delete()
       .eq("id", deleting.id)
 
-    if (error) {
-      console.error(error)
-      return
-    }
+    if (error) return
 
-    // Update current tab
     setBookmarks((prev) =>
       prev.filter((b) => b.id !== deleting.id)
     )
 
-    // Broadcast to other tabs
     channelRef.current?.postMessage({
       type: "BOOKMARK_DELETED",
       payload: { id: deleting.id },
@@ -187,37 +177,33 @@ export default function DashboardPage() {
   /* ==============================
      FILTER + SORT
   ============================== */
-  const allTags = useMemo(() => {
-    const tags = new Set<string>()
-    bookmarks.forEach((b) =>
-      b.tags?.forEach((tag) => tags.add(tag))
-    )
-    return Array.from(tags)
-  }, [bookmarks])
-
   const filteredBookmarks = useMemo(() => {
     let list = [...bookmarks]
 
-    if (activeTab === "favourites")
+    // Favourite filter
+    if (activeTab === "favourites") {
       list = list.filter((b) => b.favourite)
+    }
 
-    if (selectedTag !== "all")
-      list = list.filter((b) =>
-        b.tags?.includes(selectedTag)
-      )
-
+    // Search filter
     if (search.trim()) {
       const q = search.toLowerCase()
       list = list.filter(
         (b) =>
           b.title.toLowerCase().includes(q) ||
           b.url.toLowerCase().includes(q) ||
-          b.note?.toLowerCase().includes(q) ||
-          b.tags?.join(" ").toLowerCase().includes(q)
+          b.note?.toLowerCase().includes(q)
       )
     }
 
+    // Sorting
     switch (sortBy) {
+      case "az":
+        list.sort((a, b) => a.title.localeCompare(b.title))
+        break
+      case "za":
+        list.sort((a, b) => b.title.localeCompare(a.title))
+        break
       case "newest":
         list.sort(
           (a, b) =>
@@ -232,26 +218,15 @@ export default function DashboardPage() {
             new Date(b.created_at).getTime()
         )
         break
-      case "az":
-        list.sort((a, b) =>
-          a.title.localeCompare(b.title)
-        )
-        break
-      case "za":
-        list.sort((a, b) =>
-          b.title.localeCompare(a.title)
-        )
-        break
     }
 
     return list
-  }, [bookmarks, search, activeTab, selectedTag, sortBy])
+  }, [bookmarks, search, activeTab, sortBy])
 
   function clearFilters() {
     setSearch("")
-    setSelectedTag("all")
-    setSortBy("newest")
     setActiveTab("all")
+    setSortBy("newest")
     setViewMode("cards")
   }
 
@@ -266,17 +241,15 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-semibold">
             Your Bookmarks
           </h1>
-          <p className="text-muted-foreground text-sm">
-            Manage, filter and organize your saved links.
-          </p>
         </div>
-
         <Button onClick={() => setShowAdd(true)}>
           + Add Bookmark
         </Button>
       </div>
 
+      {/* FILTER BAR */}
       <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-wrap gap-4 items-center justify-between">
+
         <Input
           placeholder="Search..."
           value={search}
@@ -285,6 +258,8 @@ export default function DashboardPage() {
         />
 
         <div className="flex gap-3 flex-wrap">
+
+          {/* VIEW MODE */}
           <Select value={viewMode} onValueChange={(v: any) => setViewMode(v)}>
             <SelectTrigger className="w-36">
               <SelectValue />
@@ -297,6 +272,7 @@ export default function DashboardPage() {
             </SelectContent>
           </Select>
 
+          {/* FAV FILTER */}
           <Select value={activeTab} onValueChange={(v: any) => setActiveTab(v)}>
             <SelectTrigger className="w-36">
               <SelectValue />
@@ -307,28 +283,73 @@ export default function DashboardPage() {
             </SelectContent>
           </Select>
 
+          {/* SORT FILTER */}
+          <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="az">A-Z</SelectItem>
+              <SelectItem value="za">Z-A</SelectItem>
+              <SelectItem value="newest">Newest-Oldest</SelectItem>
+              <SelectItem value="oldest">Oldest-Newest</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button variant="outline" onClick={clearFilters}>
             Clear
           </Button>
+
         </div>
       </div>
 
+      {/* CONTENT AREA */}
       {loading ? (
         <div>Loading bookmarks...</div>
       ) : filteredBookmarks.length === 0 ? (
         <div>No bookmarks found.</div>
       ) : (
-        <div className="grid md:grid-cols-3 gap-6">
-          {filteredBookmarks.map((bookmark) => (
-            <BookmarkCard
-              key={bookmark.id}
-              bookmark={bookmark}
-              onEdit={() => setEditing(bookmark)}
-              onDelete={() => setDeleting(bookmark)}
-              onToggleFavourite={() => toggleFavourite(bookmark)}
+        <>
+          {viewMode === "cards" && (
+            <div className="grid md:grid-cols-3 gap-6">
+              {filteredBookmarks.map((bookmark) => (
+                <BookmarkCard
+                  key={bookmark.id}
+                  bookmark={bookmark}
+                  onEdit={() => setEditing(bookmark)}
+                  onDelete={() => setDeleting(bookmark)}
+                  onToggleFavourite={() => toggleFavourite(bookmark)}
+                />
+              ))}
+            </div>
+          )}
+
+          {viewMode === "list" && (
+            <BookmarkListView
+              bookmarks={filteredBookmarks}
+              onToggleFavourite={toggleFavourite}
+              onEdit={(b) => setEditing(b)}
+              onDelete={(b) => setDeleting(b)}
             />
-          ))}
-        </div>
+          )}
+
+          {viewMode === "headlines" && (
+            <BookmarkHeadlineView
+              bookmarks={filteredBookmarks}
+              onEdit={(b) => setEditing(b)}
+              onDelete={(b) => setDeleting(b)}
+            />
+          )}
+
+          {viewMode === "moodboard" && (
+            <BookmarkMoodboardView
+              bookmarks={filteredBookmarks}
+              onEdit={(b) => setEditing(b)}
+              onDelete={(b) => setDeleting(b)}
+              onToggleFavourite={toggleFavourite}
+            />
+          )}
+        </>
       )}
 
       <AddBookmarkModal

@@ -1,541 +1,531 @@
-"use client"
+// src/app/(protected)/dashboard/settings/page.tsx
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import { supabase } from "@/lib/supabase/client"
-
-import BookmarkCard from "@/modules/dashboard/components/BookmarkCard"
-import BookmarkListView from "@/modules/dashboard/components/BookmarkListView"
-import BookmarkHeadlineView from "@/modules/dashboard/components/BookmarkHeadlineView"
-import BookmarkMoodboardView from "@/modules/dashboard/components/BookmarkMoodboardView"
-
-import AddBookmarkModal from "@/modules/dashboard/components/AddBookmarModal"
-import EditBookmarkDrawer from "@/modules/dashboard/components/EditBookmarkDrawer"
-import DeleteConfirmModal from "@/modules/dashboard/components/DeleteBookmarkModal"
-
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectTrigger,
   SelectContent,
   SelectItem,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { useTheme } from "next-themes";
+import { Loader2, Trash2, LogOut, Edit2 } from "lucide-react";
+import { format } from "date-fns";
 
-type Bookmark = {
-  id: string
-  title: string
-  url: string
-  tags?: string[]
-  note?: string
-  favourite?: boolean
-  created_at: string
-}
+type Country = { name: string; cca2: string; dialCode?: string };
+type StateItem = { name: string };
 
-export default function DashboardPage() {
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
-  const [loading, setLoading] = useState(true)
+export default function SettingsPage() {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  /* FILTER STATES */
-  const [search, setSearch] = useState("")
-  const [activeTab, setActiveTab] = useState<"all" | "favourites">("all")
-  const [selectedTag, setSelectedTag] = useState<string>("all")
-  const [sortBy, setSortBy] = useState("newest")
-  const [viewMode, setViewMode] = useState<
-    "cards" | "list" | "headlines" | "moodboard"
-  >("cards")
+  const [user, setUser] = useState<any | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
 
-  /* MODALS */
-  const [showAdd, setShowAdd] = useState(false)
-  const [editing, setEditing] = useState<Bookmark | null>(null)
-  const [deleting, setDeleting] = useState<Bookmark | null>(null)
+  // local editable state (mirrors profile fields)
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+  const [country, setCountry] = useState<string | null>(null); // store cca2 or null
+  const [stateName, setStateName] = useState<string | null>(null);
+  const [dialCode, setDialCode] = useState("+91");
+  const [phone, setPhone] = useState("");
 
-  /* ======================================================
-     Helper: safe upsert/remove handlers (dedupe + stable)
-     ====================================================== */
-  function addOrReplaceBookmark(b: Bookmark) {
-    setBookmarks((prev) => {
-      // if exists, replace and keep order
-      if (prev.find((p) => p.id === b.id)) {
-        return prev.map((p) => (p.id === b.id ? b : p))
-      }
-      // otherwise add to front
-      return [b, ...prev]
-    })
-  }
+  // lists
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [states, setStates] = useState<StateItem[]>([]);
+  const [countriesLoading, setCountriesLoading] = useState(false);
+  const [statesLoading, setStatesLoading] = useState(false);
 
-  function updateBookmark(b: Bookmark) {
-    setBookmarks((prev) =>
-      prev.map((p) => (p.id === b.id ? { ...p, ...b } : p))
-    )
-  }
-
-  function removeBookmarkById(id: string) {
-    setBookmarks((prev) => prev.filter((p) => p.id !== id))
-  }
-
-  /* ==============================
-     FETCH BOOKMARKS
-  ============================== */
-  async function fetchBookmarks() {
-    setLoading(true)
-
-    const { data, error } = await supabase
-      .from("bookmarks")
-      .select("*")
-      .order("created_at", { ascending: false })
-
-    if (!error) {
-      setBookmarks(data || [])
-    } else {
-      // optional: handle/log error
-      console.error("Failed to fetch bookmarks:", error)
-    }
-
-    setLoading(false)
-  }
-
+  /* -------------------------
+     Fetch current user and profile
+  ------------------------- */
   useEffect(() => {
-    fetchBookmarks()
-  }, [])
+    fetchUserAndProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  /* ======================================================
-     Multi-tab & realtime syncing
-     - Supabase realtime (user-scoped)
-     - CustomEvent (optimistic local updates)
-     - BroadcastChannel + storage fallback
-     ====================================================== */
-  useEffect(() => {
-    let channel: any = null
-    const bcSupported = typeof BroadcastChannel !== "undefined"
-    const bc = bcSupported ? new BroadcastChannel("bookmarks") : null
-    let isSubscribed = true // guard for race conditions
+  async function fetchUserAndProfile() {
+    setLoadingProfile(true);
+    try {
+      const { data } = await supabase.auth.getUser();
+      const currentUser = data?.user ?? null;
+      setUser(currentUser);
 
-    // handle payload from supabase realtime
-    const handleRealtimePayload = (payload: any) => {
-      // payload shape from supabase: eventType, new, old
-      const eventType = payload.eventType || payload.type || payload.event
-      const newRow = payload.new ?? payload.record ?? payload
-      const oldRow = payload.old ?? null
-
-      if (!eventType) return
-
-      if (eventType === "INSERT" || eventType === "INSERT:") {
-        addOrReplaceBookmark(newRow as Bookmark)
-      } else if (eventType === "UPDATE" || eventType === "UPDATE:") {
-        updateBookmark(newRow as Bookmark)
-      } else if (eventType === "DELETE" || eventType === "DELETE:") {
-        const id = (oldRow && oldRow.id) || (payload.old?.id ?? null)
-        if (id) removeBookmarkById(id)
+      if (!currentUser) {
+        setLoadingProfile(false);
+        return;
       }
-    }
 
-    // setup supabase realtime (user-scoped if possible)
-    async function setupRealtime() {
+      setEmail(currentUser.email || "");
+
+      // fetch profile row from profiles table (assuming RLS allows)
+      const { data: profileData, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .single();
+
+      if (error && error.code !== "PGRST116") {
+        // PGRST116 is "No rows" (in some setups) - ignore if not found
+        console.warn("fetch profile error:", error);
+      }
+
+      if (profileData) {
+        setProfile(profileData);
+        // populate editable state with profile table data
+        setDisplayName(profileData.display_name ?? "");
+        setCountry(profileData.country ?? null);
+        setStateName(profileData.state ?? null);
+        setDialCode(profileData.dial_code ?? "+91");
+        setPhone(profileData.phone ?? "");
+      } else {
+        // if no profile row exists, keep defaults. You may want to create one on first save.
+      }
+    } catch (err) {
+      console.error("fetchUserAndProfile", err);
+    } finally {
+      setLoadingProfile(false);
+    }
+  }
+
+  /* -------------------------
+     Load countries list (restcountries) with dial codes
+  ------------------------- */
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCountries() {
+      setCountriesLoading(true);
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
+        const res = await fetch(
+          "https://restcountries.com/v3.1/all?fields=name,cca2,idd"
+        );
+        if (!res.ok) throw new Error("restcountries failed");
+        const raw = await res.json();
 
-        // If no authenticated user, skip realtime (still keep other fallbacks)
-        if (!user) return
-
-        // subscribe to user's bookmarks only
-        channel = supabase
-          .channel("realtime-bookmarks")
-          .on(
-            "postgres_changes",
-            {
-              event: "*",
-              schema: "public",
-              table: "bookmarks",
-              filter: `user_id=eq.${user.id}`,
-            },
-            (payload) => {
-              if (!isSubscribed) return
-              try {
-                handleRealtimePayload(payload)
-              } catch (err) {
-                console.error("Realtime payload handling error:", err)
+        const mapped: Country[] = raw
+          .map((c: any) => {
+            let dial: string | undefined;
+            try {
+              if (c?.idd?.root) {
+                const root: string = c.idd.root;
+                const suffixes: string[] = c?.idd?.suffixes ?? [];
+                dial = suffixes.length > 0 ? `${root}${suffixes[0]}` : root;
+                if (dial && !dial.startsWith("+")) dial = `+${dial}`;
               }
+            } catch {
+              dial = undefined;
             }
-          )
-          .subscribe((status) => {
-            // optional: you can inspect status for errors
-            // console.log("realtime status", status)
+            return {
+              name: c?.name?.common ?? c?.name ?? "Unknown",
+              cca2: c?.cca2 ?? "",
+              dialCode: dial,
+            };
           })
+          .filter((x: Country) => x.name && x.cca2)
+          .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+
+        if (!cancelled) setCountries(mapped);
       } catch (err) {
-        console.error("Failed to set up realtime:", err)
-      }
-    }
-
-    setupRealtime()
-
-    // CustomEvent: optimistic local updates from AddBookmarkModal (dispatchEvent)
-    function handleLocalCustomEvent(e: any) {
-      const detail = e?.detail
-      if (!detail) return
-
-      // expected shape: the inserted bookmark row (with id)
-      addOrReplaceBookmark(detail)
-    }
-    window.addEventListener("bookmark-added", handleLocalCustomEvent as EventListener)
-
-    // BroadcastChannel fallback
-    if (bc) {
-      bc.onmessage = (msg) => {
-        const data = msg?.data
-        if (!data) return
-
-        if (data.type === "BOOKMARK_CREATED" && data.payload) {
-          addOrReplaceBookmark(data.payload as Bookmark)
-        } else if (data.type === "BOOKMARK_UPDATED" && data.payload) {
-          updateBookmark(data.payload as Bookmark)
-        } else if (data.type === "BOOKMARK_DELETED" && data.payload?.id) {
-          removeBookmarkById(data.payload.id)
+        console.warn("loadCountries failed, using fallback", err);
+        if (!cancelled) {
+          setCountries([
+            { name: "India", cca2: "IN", dialCode: "+91" },
+            { name: "United States", cca2: "US", dialCode: "+1" },
+            { name: "United Kingdom", cca2: "GB", dialCode: "+44" },
+          ]);
         }
+      } finally {
+        if (!cancelled) setCountriesLoading(false);
       }
     }
 
-    // storage event fallback (cross-tab)
-    function handleStorage(e: StorageEvent) {
-      if (!e.key) return
-      if (e.key === "bookmark_added") {
-        try {
-          const parsed = JSON.parse(e.newValue || "null")
-          if (parsed) addOrReplaceBookmark(parsed as Bookmark)
-        } catch (err) {
-          // ignore parse errors
-        }
-      } else if (e.key === "bookmark_updated") {
-        try {
-          const parsed = JSON.parse(e.newValue || "null")
-          if (parsed) updateBookmark(parsed as Bookmark)
-        } catch (err) {}
-      } else if (e.key === "bookmark_deleted") {
-        try {
-          const parsed = JSON.parse(e.newValue || "null")
-          if (parsed?.id) removeBookmarkById(parsed.id)
-        } catch (err) {}
-      }
-    }
-    window.addEventListener("storage", handleStorage)
-
+    loadCountries();
     return () => {
-      isSubscribed = false
+      cancelled = true;
+    };
+  }, []);
 
-      // cleanup supabase channel
-      if (channel) {
-        try {
-          supabase.removeChannel(channel)
-        } catch (err) {
-          // try a best-effort remove
-          console.warn("Failed to remove supabase channel:", err)
-        }
-      }
-
-      // cleanup broadcast
-      if (bc) {
-        try {
-          bc.close()
-        } catch (err) {}
-      }
-
-      window.removeEventListener("bookmark-added", handleLocalCustomEvent as EventListener)
-      window.removeEventListener("storage", handleStorage)
-    }
-  }, [])
-
-  /* ==============================
-     EXTRACT UNIQUE TAGS
-  ============================== */
-  const allTags = useMemo(() => {
-    const tags = new Set<string>()
-    bookmarks.forEach((b) => {
-      b.tags?.forEach((tag) => tags.add(tag))
-    })
-    return Array.from(tags)
-  }, [bookmarks])
-
-  /* ==============================
-     FILTER + SORT
-  ============================== */
-  const filteredBookmarks = useMemo(() => {
-    let list = [...bookmarks]
-
-    if (activeTab === "favourites") {
-      list = list.filter((b) => b.favourite)
+  /* -------------------------
+     Load states for chosen country (uses countriesnow API)
+  ------------------------- */
+  useEffect(() => {
+    if (!country) {
+      setStates([]);
+      setStateName(null);
+      return;
     }
 
-    if (selectedTag !== "all") {
-      list = list.filter((b) => b.tags?.includes(selectedTag))
-    }
+    let cancelled = false;
 
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      list = list.filter(
-        (b) =>
-          b.title.toLowerCase().includes(q) ||
-          b.url.toLowerCase().includes(q) ||
-          b.note?.toLowerCase().includes(q) ||
-          b.tags?.join(" ").toLowerCase().includes(q)
-      )
-    }
-
-    switch (sortBy) {
-      case "newest":
-        list.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-        break
-      case "oldest":
-        list.sort(
-          (a, b) =>
-            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        )
-        break
-      case "az":
-        list.sort((a, b) => a.title.localeCompare(b.title))
-        break
-      case "za":
-        list.sort((a, b) => b.title.localeCompare(a.title))
-        break
-    }
-
-    return list
-  }, [bookmarks, search, activeTab, selectedTag, sortBy])
-
-  /* ==============================
-     TOGGLE FAVOURITE
-     (we update DB; realtime or storage will sync)
-  ============================== */
-  async function toggleFavourite(bookmark: Bookmark) {
-    try {
-      const { error, data } = await supabase
-        .from("bookmarks")
-        .update({ favourite: !bookmark.favourite })
-        .eq("id", bookmark.id)
-        .select()
-        .single()
-
-      if (error) throw error
-
-      // update optimistically in this tab
-      if (data) updateBookmark(data as Bookmark)
-
-      // also broadcast to other tabs (fallback)
+    async function loadStates() {
+      setStatesLoading(true);
+      setStates([]);
+      setStateName(null);
       try {
-        if (typeof BroadcastChannel !== "undefined") {
-          const bc = new BroadcastChannel("bookmarks")
-          bc.postMessage({ type: "BOOKMARK_UPDATED", payload: data })
-          bc.close()
-        } else {
-          localStorage.setItem("bookmark_updated", JSON.stringify(data))
-          // small cleanup to avoid filling storage
-          setTimeout(() => localStorage.removeItem("bookmark_updated"), 500)
+        // find the country name from the cca2
+        const cObj = countries.find((c) => c.cca2 === country);
+        const countryName = cObj?.name ?? "";
+        if (!countryName) {
+          setStates([]);
+          return;
         }
-      } catch (err) {}
-    } catch (err) {
-      console.error("toggleFavourite error:", err)
-    }
-  }
 
-  /* ==============================
-     DELETE
-  ============================== */
-  async function confirmDelete() {
-    if (!deleting) return
+        const res = await fetch("https://countriesnow.space/api/v0.1/countries/states", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ country: countryName }),
+        });
+        if (!res.ok) throw new Error("states fetch failed");
+        const json = await res.json();
+        if (json?.data?.states && Array.isArray(json.data.states)) {
+          const mapped = json.data.states.map((s: any) => ({ name: s.name ?? s }));
+          if (!cancelled) setStates(mapped);
+        } else {
+          if (!cancelled) setStates([]);
+        }
+      } catch (err) {
+        console.warn("loadStates error", err);
+        if (!cancelled) setStates([]);
+      } finally {
+        if (!cancelled) setStatesLoading(false);
+      }
+    }
+
+    // set dial code when country selected (if available)
+    const pick = countries.find((c) => c.cca2 === country);
+    if (pick?.dialCode) setDialCode(pick.dialCode);
+
+    loadStates();
+    return () => {
+      cancelled = true;
+    };
+  }, [country, countries]);
+
+  const dialCodes = useMemo(() => {
+    const map = new Map<string, string>();
+    countries.forEach((c) => {
+      if (c.dialCode) map.set(c.dialCode, c.dialCode);
+    });
+    return Array.from(map.values());
+  }, [countries]);
+
+  /* -------------------------
+     Save profile -> upsert into 'profiles' table
+  ------------------------- */
+  async function saveProfile() {
+    if (!user) {
+      console.warn("no user");
+      return;
+    }
+    setSaving(true);
+
+    const payload = {
+      user_id: user.id,
+      display_name: displayName || null,
+      country: country || null,
+      state: stateName || null,
+      dial_code: dialCode || null,
+      phone: phone || null,
+      updated_at: new Date().toISOString(),
+    };
 
     try {
-      const { error, data } = await supabase
-        .from("bookmarks")
-        .delete()
-        .eq("id", deleting.id)
+      // upsert into profiles table (RLS should allow user to upsert their own row)
+      const { data: upserted, error: upsertErr } = await supabase
+        .from("profiles")
+        .upsert(payload, { onConflict: "user_id", returning: "representation" })
         .select()
+        .single();
 
-      if (error) throw error
+      if (upsertErr) {
+        console.error("upsert profile error", upsertErr);
+        alert("Failed to save profile.");
+      } else {
+        // keep local profile state refreshed
+        setProfile(upserted);
+      }
 
-      // optimistic remove in this tab
-      removeBookmarkById(deleting.id)
+      // optional: update auth user display name so pre-existing auth-based UX sees name
+      if (displayName) {
+        const { error: authErr } = await supabase.auth.updateUser({
+          data: { display_name: displayName },
+        });
+        if (authErr) console.warn("auth updateUser error", authErr);
+      }
 
-      // broadcast fallback
-      try {
-        if (typeof BroadcastChannel !== "undefined") {
-          const bc = new BroadcastChannel("bookmarks")
-          bc.postMessage({ type: "BOOKMARK_DELETED", payload: { id: deleting.id } })
-          bc.close()
-        } else {
-          localStorage.setItem("bookmark_deleted", JSON.stringify({ id: deleting.id }))
-          setTimeout(() => localStorage.removeItem("bookmark_deleted"), 500)
-        }
-      } catch (err) {}
-
-      setDeleting(null)
+      setOpenEdit(false);
     } catch (err) {
-      console.error("Delete error:", err)
+      console.error("saveProfile unexpected", err);
+      alert("Unexpected error while saving.");
+    } finally {
+      setSaving(false);
+      // refresh to be safe
+      fetchUserAndProfile();
     }
   }
 
-  /* ==============================
-     CLEAR FILTERS
-  ============================== */
-  function clearFilters() {
-    setSearch("")
-    setSelectedTag("all")
-    setSortBy("newest")
-    setActiveTab("all")
-    setViewMode("cards")
+  /* -------------------------
+     Logout & Delete
+  ------------------------- */
+  async function logout() {
+    try {
+      await fetch("/api/logout", { method: "POST" });
+      window.location.replace("/login");
+    } catch (err) {
+      console.error(err);
+      alert("Logout failed");
+    }
   }
 
-  /* ==============================
-     UI
-  ============================== */
+  async function deleteAccount() {
+    if (!confirm("Permanently delete account?")) return;
+    try {
+      await fetch("/api/delete-account", { method: "POST" });
+      window.location.replace("/");
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed");
+    }
+  }
+
+  const themeValue = mounted ? theme ?? resolvedTheme : "system";
+
+  /* -------------------------
+     Render
+  ------------------------- */
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-semibold">Your Bookmarks</h1>
-          <p className="text-muted-foreground text-sm">
-            Manage, filter and organize your saved links.
-          </p>
-        </div>
-
-        <Button onClick={() => setShowAdd(true)}>+ Add Bookmark</Button>
+    <div className="max-w-5xl mx-auto py-6 space-y-8">
+      <div>
+        <h1 className="text-3xl font-semibold">Settings</h1>
+        <p className="text-muted-foreground mt-1">Manage your account and profile</p>
       </div>
 
-      <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-wrap gap-4 items-center justify-between">
-        <Input
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-sm"
-        />
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile</CardTitle>
+        </CardHeader>
 
-        <div className="flex gap-3 flex-wrap">
-          <Select value={viewMode} onValueChange={(v: any) => setViewMode(v)}>
-            <SelectTrigger className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="cards">Cards</SelectItem>
-              <SelectItem value="list">List</SelectItem>
-              <SelectItem value="headlines">Headlines</SelectItem>
-              <SelectItem value="moodboard">Moodboard</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={activeTab} onValueChange={(v: any) => setActiveTab(v)}>
-            <SelectTrigger className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="favourites">Favourites</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedTag} onValueChange={setSelectedTag}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Tag" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Tags</SelectItem>
-              {allTags.map((tag) => (
-                <SelectItem key={tag} value={tag}>
-                  #{tag}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="oldest">Oldest</SelectItem>
-              <SelectItem value="az">Title A-Z</SelectItem>
-              <SelectItem value="za">Title Z-A</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button variant="outline" onClick={clearFilters}>
-            Clear
-          </Button>
-        </div>
-      </div>
-
-      {loading ? (
-        <div>Loading bookmarks...</div>
-      ) : filteredBookmarks.length === 0 ? (
-        <div>No bookmarks found.</div>
-      ) : (
-        <>
-          {viewMode === "cards" && (
-            <div className="grid md:grid-cols-3 gap-6">
-              {filteredBookmarks.map((bookmark) => (
-                <BookmarkCard
-                  key={bookmark.id}
-                  bookmark={bookmark}
-                  onEdit={() => setEditing(bookmark)}
-                  onDelete={() => setDeleting(bookmark)}
-                  onToggleFavourite={() => toggleFavourite(bookmark)}
-                />
-              ))}
+        <CardContent className="flex items-center justify-between">
+          <div>
+            <div className="text-sm text-muted-foreground">Signed in as</div>
+            <div className="font-medium">{email || "—"}</div>
+            <div className="text-sm text-muted-foreground mt-1">
+              {profile?.display_name ?? displayName ?? "No display name"}
             </div>
-          )}
+            <div className="text-xs text-muted-foreground mt-1">
+              Profile updated:{" "}
+              {profile?.updated_at ? format(new Date(profile.updated_at), "PPP p") : "—"}
+            </div>
+          </div>
 
-          {viewMode === "list" && (
-            <BookmarkListView
-              bookmarks={filteredBookmarks}
-              onToggleFavourite={toggleFavourite}
-              onEdit={(b) => setEditing(b)}
-              onDelete={(b) => setDeleting(b)}
-            />
-          )}
+          <div className="flex gap-3">
+            <Button variant="ghost" onClick={() => setOpenEdit(true)}>
+              <Edit2 className="mr-2 h-4 w-4" />
+              Edit Profile
+            </Button>
 
-          {viewMode === "headlines" && (
-            <BookmarkHeadlineView
-              bookmarks={filteredBookmarks}
-              onEdit={(b) => setEditing(b)}
-              onDelete={(b) => setDeleting(b)}
-            />
-          )}
+            <Button onClick={fetchUserAndProfile} variant="outline">
+              {loadingProfile ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+              Refresh
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-          {viewMode === "moodboard" && (
-            <BookmarkMoodboardView
-              bookmarks={filteredBookmarks}
-              onEdit={(b) => setEditing(b)}
-              onDelete={(b) => setDeleting(b)}
-              onToggleFavourite={toggleFavourite}
-            />
-          )}
-        </>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+        </CardHeader>
 
-      {/* NOTE: AddBookmarkModal no longer needs onSuccess — it should dispatch
-          a `bookmark-added` CustomEvent and optionally broadcast to other tabs.
-          If your modal still calls onSuccess, it's safe but may cause an extra fetch. */}
-      <AddBookmarkModal open={showAdd} onClose={() => setShowAdd(false)} />
+        <CardContent className="flex justify-between items-center">
+          <div>
+            <div className="text-sm font-medium">Dark Mode</div>
+            <p className="text-xs text-muted-foreground">Toggle site appearance</p>
+          </div>
 
-      {editing && (
-        <EditBookmarkDrawer
-          bookmark={editing}
-          onClose={() => setEditing(null)}
-          // keep onSuccess here for backward compatibility if your drawer still uses it
-          onSuccess={fetchBookmarks}
-        />
-      )}
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-muted-foreground">Light</span>
+            <Switch checked={themeValue === "dark"} onCheckedChange={(v) => setTheme(v ? "dark" : "light")} />
+            <span className="text-xs text-muted-foreground">Dark</span>
+          </div>
+        </CardContent>
+      </Card>
 
-      {deleting && (
-        <DeleteConfirmModal
-          bookmark={deleting}
-          onClose={() => setDeleting(null)}
-          onConfirm={confirmDelete}
+      <Card className="border-red-100">
+        <CardHeader>
+          <CardTitle className="text-red-600">Danger Zone</CardTitle>
+        </CardHeader>
+
+        <CardContent className="flex gap-4">
+          <Button variant="outline" onClick={logout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+
+          <Button variant="destructive" onClick={deleteAccount}>
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete Account
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Profile Modal */}
+      {openEdit && (
+        <ProfileModal
+          displayName={displayName}
+          setDisplayName={setDisplayName}
+          email={email}
+          country={country}
+          setCountry={(v: string | null) => setCountry(v)}
+          stateName={stateName}
+          setStateName={(v: string | null) => setStateName(v)}
+          dialCode={dialCode}
+          setDialCode={setDialCode}
+          phone={phone}
+          setPhone={setPhone}
+          countries={countries}
+          countriesLoading={countriesLoading}
+          states={states}
+          statesLoading={statesLoading}
+          dialCodes={dialCodes}
+          saving={saving}
+          onSave={saveProfile}
+          onClose={() => setOpenEdit(false)}
         />
       )}
     </div>
-  )
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* ProfileModal - inline modal implementation (keeps compatibility)          */
+/* -------------------------------------------------------------------------- */
+function ProfileModal({
+  displayName,
+  setDisplayName,
+  email,
+  country,
+  setCountry,
+  stateName,
+  setStateName,
+  dialCode,
+  setDialCode,
+  phone,
+  setPhone,
+  countries,
+  countriesLoading,
+  states,
+  statesLoading,
+  dialCodes,
+  saving,
+  onSave,
+  onClose,
+}: any) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-2xl bg-white dark:bg-[#0b1220] rounded-2xl shadow-2xl overflow-hidden border">
+        <div className="p-6 border-b flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Edit profile</h3>
+            <p className="text-xs text-muted-foreground">Update name, contact and location</p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={onSave} disabled={saving}>
+              {saving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+              Save
+            </Button>
+          </div>
+        </div>
+
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Display name</Label>
+            <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Jane Doe" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input value={email} disabled />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Country</Label>
+            <Select value={country ?? ""} onValueChange={(v: string) => setCountry(v || null)}>
+              <SelectTrigger>
+                <SelectValue placeholder={countriesLoading ? "Loading countries..." : "Select country"} />
+              </SelectTrigger>
+              <SelectContent>
+                {countries.map((c) => (
+                  <SelectItem key={c.cca2} value={c.cca2}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>State / Region</Label>
+            {/* If there are no states, show a disabled input instead of empty select */}
+            {statesLoading ? (
+              <Input value="Loading..." disabled />
+            ) : states.length === 0 ? (
+              <Input value="No states available" disabled />
+            ) : (
+              <Select value={stateName ?? ""} onValueChange={(v: string) => setStateName(v || null)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {states.map((s) => (
+                    <SelectItem key={s.name} value={s.name}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Dial code</Label>
+            <Select value={dialCode ?? ""} onValueChange={(v: string) => setDialCode(v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Dial code" />
+              </SelectTrigger>
+              <SelectContent>
+                {dialCodes.map((d: string) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label>Phone</Label>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} placeholder="9876543210" />
+            <p className="text-xs text-muted-foreground">Used for verification and recovery.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
