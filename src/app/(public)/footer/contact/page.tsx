@@ -1,344 +1,303 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { fadeUp, staggerContainer } from "@/modules/landing/animations"
-import MarketingPageWrapper from "@/modules/shared/components/MarketingPageWrapper"
-import { Input } from "@/components/ui/input"
+import React, { useEffect, useMemo, useState } from "react"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Loader2, Mail, Phone, Globe, MapPin } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { ShieldCheck, Zap, Cloud } from "lucide-react"
+import Navbar from "@/modules/landing/components/LandingNavbar"
+import Footer from "@/modules/landing/components/Footer"
+import { toast } from "react-hot-toast"
 
-/* ---------------- Types ---------------- */
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+}
 
-type Country = {
+type CountryItem = {
   name: string
-  iso2?: string
-  dial_code?: string
+  dialCode?: string
 }
 
 type StateItem = {
   name: string
 }
 
-/* ---------------- Geo API ---------------- */
-
-async function fetchCountries(): Promise<Country[]> {
-  const res = await fetch("https://restcountries.com/v3.1/all")
-  if (!res.ok) return []
-  const json = await res.json()
-
-  return json
-    .map((c: any) => {
-      const name = c?.name?.common ?? c?.name
-      const iso2 = c?.cca2
-      let dial_code = undefined
-
-      if (c?.idd?.root) {
-        const suffix = (c?.idd?.suffixes && c.idd.suffixes[0]) || ""
-        dial_code = `${c.idd.root}${suffix}`
-      }
-
-      return { name, iso2, dial_code }
-    })
-    .filter(Boolean)
-    .sort((a, b) => a.name.localeCompare(b.name))
-}
-
-async function fetchStatesForCountry(countryName: string): Promise<StateItem[]> {
-  try {
-    const res = await fetch(
-      "https://countriesnow.space/api/v0.1/countries/states",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ country: countryName }),
-      }
-    )
-
-    const json = await res.json()
-    if (!json?.data?.states) return []
-    return json.data.states.map((s: any) => ({ name: s.name }))
-  } catch {
-    return []
-  }
-}
-
-/* ---------------- Component ---------------- */
-
 export default function ContactPage() {
-  /* ------------ State ------------ */
-
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
-  const [gender, setGender] = useState("")
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
-  const [countryCode, setCountryCode] = useState<string | null>(null)
-  const [dialCode, setDialCode] = useState<string | null>(null)
+  const [country, setCountry] = useState("")
+  const [stateName, setStateName] = useState("")
+  const [dialCode, setDialCode] = useState("+91")
   const [phone, setPhone] = useState("")
-  const [showPhone, setShowPhone] = useState(false)
-  const [states, setStates] = useState<StateItem[]>([])
-  const [selectedState, setSelectedState] = useState<string | null>(null)
-  const [countries, setCountries] = useState<Country[]>([])
-  const [loadingCountries, setLoadingCountries] = useState(true)
-  const [loadingStates, setLoadingStates] = useState(false)
   const [message, setMessage] = useState("")
+  const [gender, setGender] = useState("")
   const [submitting, setSubmitting] = useState(false)
-  const [resultMsg, setResultMsg] = useState<
-    { type: "success" | "error"; text: string } | null
-  >(null)
 
-  /* ------------ Load Countries ------------ */
+  const [countries, setCountries] = useState<CountryItem[]>([])
+  const [states, setStates] = useState<StateItem[]>([])
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
+  /* ---------------- FETCH COUNTRIES ---------------- */
   useEffect(() => {
-    fetchCountries()
-      .then(setCountries)
-      .finally(() => setLoadingCountries(false))
+    async function loadCountries() {
+      try {
+        const res = await fetch("https://restcountries.com/v3.1/all")
+        const data = await res.json()
+
+        const mapped = data
+          .map((c: any) => {
+            let dial = c?.idd?.root
+              ? c.idd.root + (c?.idd?.suffixes?.[0] ?? "")
+              : undefined
+            return {
+              name: c?.name?.common,
+              dialCode: dial,
+            }
+          })
+          .filter((c: CountryItem) => c.name)
+          .sort((a: CountryItem, b: CountryItem) =>
+            a.name.localeCompare(b.name)
+          )
+
+        setCountries(mapped)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    loadCountries()
   }, [])
 
-  /* ------------ Country Change Logic ------------ */
-
+  /* ---------------- FETCH STATES ---------------- */
   useEffect(() => {
-    if (!selectedCountry) {
-      setStates([])
-      setSelectedState(null)
-      setDialCode(null)
-      setCountryCode(null)
-      setShowPhone(false)
-      return
+    if (!country) return
+    async function loadStates() {
+      try {
+        const res = await fetch(
+          "https://countriesnow.space/api/v0.1/countries/states",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ country }),
+          }
+        )
+        const json = await res.json()
+        setStates(json?.data?.states || [])
+      } catch {
+        setStates([])
+      }
     }
 
-    const c = countries.find((x) => x.name === selectedCountry)
+    loadStates()
 
-    if (c) {
-      setDialCode(c.dial_code ?? null)
-      setCountryCode(c.iso2 ?? null)
-      setShowPhone(Boolean(c.dial_code))
-    }
+    const pick = countries.find((c) => c.name === country)
+    if (pick?.dialCode) setDialCode(pick.dialCode)
+  }, [country, countries])
 
-    setLoadingStates(true)
-    fetchStatesForCountry(selectedCountry)
-      .then((s) => {
-        setStates(s)
-        setSelectedState(s.length ? s[0].name : null)
-      })
-      .finally(() => setLoadingStates(false))
-  }, [selectedCountry, countries])
+  /* ---------------- VALIDATION ---------------- */
+  function validate() {
+    const e: Record<string, string> = {}
+    if (!name) e.name = "Name required"
+    if (!email || !/^\S+@\S+\.\S+$/.test(email))
+      e.email = "Valid email required"
+    if (!phone) e.phone = "Phone required"
+    if (!message) e.message = "Message required"
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
 
-  /* ------------ Submit ------------ */
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  /* ---------------- SUBMIT ---------------- */
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setResultMsg(null)
-
-    if (!name || !email || !selectedCountry) {
-      setResultMsg({
-        type: "error",
-        text: "Please complete required fields.",
-      })
-      return
-    }
-
+    if (!validate()) return
     setSubmitting(true)
-
     try {
-      const res = await fetch("/api/contact", {
+      await fetch("/api/contact", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
           email,
-          gender,
-          country: selectedCountry,
-          countryCode,
-          state: selectedState,
+          country,
+          state: stateName,
           dialCode,
           phone,
+          gender,
           message,
         }),
       })
-
-      const json = await res.json()
-
-      if (!res.ok) {
-        setResultMsg({ type: "error", text: json?.error })
-      } else {
-        setResultMsg({
-          type: "success",
-          text: "Message sent successfully. We'll contact you soon.",
-        })
-
-        setName("")
-        setEmail("")
-        setGender("")
-        setSelectedCountry(null)
-        setDialCode(null)
-        setPhone("")
-        setMessage("")
-      }
+      toast.success("Message sent successfully!")
+      setName("")
+      setEmail("")
+      setPhone("")
+      setMessage("")
     } catch {
-      setResultMsg({ type: "error", text: "Submission failed." })
+      toast.error("Submission failed")
     } finally {
       setSubmitting(false)
     }
   }
 
-  /* ------------ UI ------------ */
-
   return (
-    <MarketingPageWrapper
-      title="Contact Us"
-      description="Reach out for support, partnerships or inquiries."
-    >
-      <div className="relative overflow-hidden">
+    <>
+      <Navbar />
 
-        {/* Animated Gradient Blobs */}
-        <div className="absolute -top-32 -left-32 w-[400px] h-[400px] bg-primary/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-32 -right-32 w-[400px] h-[400px] bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
+      <section className="relative min-h-screen px-6 py-24 overflow-hidden">
+
+        {/* Hero Gradient */}
+        <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
         <motion.div
-          variants={staggerContainer}
           initial="hidden"
           animate="visible"
-          className="relative grid lg:grid-cols-2 gap-16 py-16"
+          variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
+          className="relative z-10 max-w-7xl mx-auto space-y-16"
         >
-          {/* LEFT INFO */}
-          <motion.div variants={fadeUp} className="space-y-8">
-            <h2 className="text-4xl font-bold tracking-tight">
-              Let’s start a conversation
-            </h2>
 
-            <p className="text-muted-foreground text-lg">
-              We’re here to help. Whether you have a question,
-              partnership proposal, or feedback — we’d love to hear from you.
+          {/* HEADER */}
+          <motion.div variants={fadeUp} className="text-center space-y-6">
+            <h1 className="text-5xl md:text-6xl font-bold">
+              Get in Touch
+              <span className="block text-primary mt-2">
+                We'd Love to Hear From You
+              </span>
+            </h1>
+
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              Whether you have a question, partnership inquiry,
+              or need product support — our team is here to help.
             </p>
 
-            <div className="space-y-6 text-sm">
-              <div className="flex items-center gap-3">
-                <Mail className="text-primary" />
-                support@smartbookmark.app
-              </div>
-              <div className="flex items-center gap-3">
-                <Globe className="text-primary" />
-                Remote-first global team
-              </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="text-primary" />
-                Worldwide availability
-              </div>
+            <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <ShieldCheck size={16} />
+                Secure Communication
+              </span>
+              <span className="flex items-center gap-2">
+                <Zap size={16} />
+                Fast Response
+              </span>
+              <span className="flex items-center gap-2">
+                <Cloud size={16} />
+                Cloud Infrastructure
+              </span>
             </div>
           </motion.div>
 
-          {/* FORM */}
-          <motion.form
-            variants={fadeUp}
-            onSubmit={handleSubmit}
-            className="bg-card/60 backdrop-blur-lg border rounded-2xl p-8 space-y-6 shadow-xl"
-          >
-            <Input
-              placeholder="Full Name *"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+          {/* TWO PANEL */}
+          <div className="grid lg:grid-cols-2 gap-12">
 
-            <Input
-              type="email"
-              placeholder="Email Address *"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            {/* LEFT */}
+            <motion.div variants={fadeUp} className="space-y-6">
+              <h2 className="text-2xl font-semibold">Why Reach Out?</h2>
+              <ul className="space-y-3 text-muted-foreground">
+                <li>• Product demos & onboarding</li>
+                <li>• Enterprise partnerships</li>
+                <li>• Bug reports & feature suggestions</li>
+                <li>• Billing & account questions</li>
+              </ul>
 
-            <select
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              className="w-full border rounded-lg p-3 bg-transparent"
+              <div className="pt-6 border-t">
+                <p className="text-sm text-muted-foreground">
+                  We typically respond within 1 business day.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* RIGHT FORM */}
+            <motion.form
+              variants={fadeUp}
+              onSubmit={handleSubmit}
+              className="bg-white p-8 rounded-2xl shadow-xl space-y-4"
             >
-              <option value="">Select Gender</option>
-              <option value="female">Female</option>
-              <option value="male">Male</option>
-              <option value="other">Other</option>
-            </select>
+              <Input
+                placeholder="Full Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              {errors.name && <p className="text-xs text-red-600">{errors.name}</p>}
 
-            {/* Country */}
-            <select
-              value={selectedCountry ?? ""}
-              onChange={(e) =>
-                setSelectedCountry(e.target.value || null)
-              }
-              className="w-full border rounded-lg p-3 bg-transparent"
-            >
-              <option value="">Select Country *</option>
-              {countries.map((c) => (
-                <option key={c.name} value={c.name}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              <Input
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              {errors.email && <p className="text-xs text-red-600">{errors.email}</p>}
 
-            {/* State */}
-            {states.length > 0 && (
-              <select
-                value={selectedState ?? ""}
-                onChange={(e) => setSelectedState(e.target.value)}
-                className="w-full border rounded-lg p-3 bg-transparent"
-              >
-                {states.map((s) => (
-                  <option key={s.name}>{s.name}</option>
-                ))}
-              </select>
-            )}
+              <div className="grid md:grid-cols-2 gap-4">
+                <select
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="">Select Country</option>
+                  {countries.map((c) => (
+                    <option key={c.name} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
 
-            {/* Dial + Phone */}
-            {dialCode && (
-              <div className="flex gap-2">
-                <div className="px-4 py-3 border rounded-lg bg-muted">
-                  {dialCode}
-                </div>
+                <select
+                  value={stateName}
+                  onChange={(e) => setStateName(e.target.value)}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="">Select State</option>
+                  {states.map((s: any) => (
+                    <option key={s.name} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4">
+                <select
+                  value={dialCode}
+                  onChange={(e) => setDialCode(e.target.value)}
+                  className="border rounded px-3 py-2"
+                >
+                  {countries.map(
+                    (c) =>
+                      c.dialCode && (
+                        <option key={c.dialCode} value={c.dialCode}>
+                          {c.dialCode}
+                        </option>
+                      )
+                  )}
+                </select>
+
                 <Input
-                  placeholder="Phone number"
+                  className="md:col-span-2"
+                  placeholder="Phone Number"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) =>
+                    setPhone(e.target.value.replace(/\D/g, ""))
+                  }
                 />
               </div>
-            )}
 
-            <textarea
-              rows={5}
-              placeholder="Your Message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="w-full border rounded-lg p-3 bg-transparent"
-            />
-
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="w-full"
-            >
-              {submitting ? (
-                <Loader2 className="animate-spin mr-2" />
-              ) : null}
-              Send Message
-            </Button>
-
-            <AnimatePresence>
-              {resultMsg && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className={`p-3 rounded-lg text-sm ${
-                    resultMsg.type === "success"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {resultMsg.text}
-                </motion.div>
+              <Textarea
+                placeholder="Your Message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={5}
+              />
+              {errors.message && (
+                <p className="text-xs text-red-600">{errors.message}</p>
               )}
-            </AnimatePresence>
-          </motion.form>
+
+              <Button type="submit" disabled={submitting} className="w-full">
+                {submitting ? "Sending..." : "Send Message"}
+              </Button>
+            </motion.form>
+          </div>
         </motion.div>
-      </div>
-    </MarketingPageWrapper>
+      </section>
+<br/>
+      <Footer />
+    </>
   )
 }

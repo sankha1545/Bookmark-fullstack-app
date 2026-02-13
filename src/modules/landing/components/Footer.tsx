@@ -60,9 +60,10 @@ export default function FooterSection() {
               Product
             </h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><Link href="#security">Security</Link></li>
-              <li><Link href="#access">Access</Link></li>
-              <li><Link href="#pricing">Pricing</Link></li>
+          <li><Link href="/#security">Security</Link></li>
+<li><Link href="/#access">Access</Link></li>
+<li><Link href="/#pricing">Pricing</Link></li>
+
               <li><Link href="/login">Login</Link></li>
             </ul>
           </div>

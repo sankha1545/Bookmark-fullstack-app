@@ -10,11 +10,12 @@ import {
   Users,
   ShieldCheck,
   Cloud,
-  CloudLightning, // corrected icon
+  CloudLightning,
   Calendar,
   CheckCircle,
 } from "lucide-react"
-
+import Navbar from "@/modules/landing/components/LandingNavbar"
+import Footer from "@/modules/landing/components/Footer"
 const sections = [
   { id: "introduction", label: "Introduction" },
   { id: "problem", label: "Problem" },
@@ -32,14 +33,13 @@ export default function AboutPage() {
   const [counts, setCounts] = useState({ users: 0, bookmarks: 0, syncs: 0 })
   const countersStarted = useRef(false)
 
-  // Scroll spy: set "active" when section top crosses the threshold
+  // Scroll spy: set "active" when section center crosses the viewport center
   useEffect(() => {
     const handleScroll = () => {
       sections.forEach((section) => {
         const el = document.getElementById(section.id)
         if (el) {
           const rect = el.getBoundingClientRect()
-          // center of viewport detection for clear section activation
           const center = window.innerHeight / 2
           if (rect.top <= center && rect.bottom >= center) {
             setActive(section.id)
@@ -118,7 +118,13 @@ export default function AboutPage() {
   }, [active])
 
   return (
-    <div className="min-h-screen px-6 py-12 max-w-7xl mx-auto">
+  
+    <div className="min-h-screen px-6 py-12 max-w-7xl mx-auto relative">
+      <Navbar />
+      {/* Hero-style background gradient circles (same as HeroSection) */}
+      <div className="pointer-events-none absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
+      <div className="pointer-events-none absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
+
       <div className="grid md:grid-cols-[260px_1fr] gap-14">
         {/* SIDEBAR (sticky) */}
         <aside className="hidden md:block sticky top-28 self-start">
@@ -145,6 +151,7 @@ export default function AboutPage() {
               ))}
             </motion.ul>
           </nav>
+
           {/* quick action */}
           <div className="mt-8 border rounded-lg p-4 bg-card">
             <h4 className="text-sm font-semibold mb-2">Quick Actions</h4>
@@ -166,7 +173,7 @@ export default function AboutPage() {
         </aside>
 
         {/* MAIN */}
-        <main className="space-y-28">
+        <main className="space-y-28 relative z-10">
           {/* INTRODUCTION (metrics + hero) */}
           <section
             id="introduction"
@@ -522,9 +529,14 @@ export default function AboutPage() {
             <motion.p variants={fadeUp} className="text-sm text-muted-foreground mt-6 max-w-2xl">
               Questions? Reach us at <a className="underline" href="mailto:support@smartbookmark.app">support@smartbookmark.app</a>. We’re happy to help.
             </motion.p>
+            <br/>
+           
           </section>
+           
         </main>
       </div>
+      <Footer />
     </div>
+    
   )
 }

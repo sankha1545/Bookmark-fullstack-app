@@ -27,13 +27,12 @@ export default function LandingNavbar() {
         <div className="font-semibold tracking-tight">
           Smart Bookmark
         </div>
-
-        <nav className="hidden md:flex gap-8 text-sm">
-          <a href="#security">Security</a>
-          <a href="#access">Access</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#cta">Get Started</a>
-        </nav>
+<nav className="hidden md:flex gap-8 text-sm">
+  <Link href="/#security">Security</Link>
+  <Link href="/#access">Access</Link>
+  <Link href="/#pricing">Pricing</Link>
+  <Link href="/#cta">Get Started</Link>
+</nav>
 
         <Link href="/login">
           <Button size="sm">Login</Button>
