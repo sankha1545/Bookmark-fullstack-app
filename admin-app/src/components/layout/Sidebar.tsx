@@ -2,53 +2,84 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { motion } from "framer-motion"
-import {
-  LayoutDashboard,
-  Users,
-  BarChart3,
-  MessageSquare,
-  Settings,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Home, Users, Mail, Settings } from "lucide-react"
+import clsx from "clsx"
 
 const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Users", href: "/users", icon: Users },
-  { name: "Contacts", href: "/contacts", icon: MessageSquare },
-  { name: "Settings", href: "/settings", icon: Settings },
+  {
+    label: "Dashboard",
+    href: "/dashboard",
+    icon: Home,
+  },
+  {
+    label: "Users",
+    href: "/users",
+    icon: Users,
+  },
+  {
+    label: "Contacts",
+    href: "/contacts",
+    icon: Mail,
+  },
+  {
+    label: "Settings",
+    href: "/settings",
+    icon: Settings,
+  },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="w-64 bg-white border-r shadow-sm">
-      <div className="p-6 text-xl font-bold">Smart Bookmark</div>
+    <aside className="h-screen w-72 flex flex-col border-r bg-background/80 backdrop-blur-xl shadow-sm">
 
-      <nav className="px-4 space-y-1">
+      {/* ================= LOGO AREA ================= */}
+      <div className="px-6 py-6 border-b">
+        <h1 className="text-xl font-semibold tracking-tight">
+          Smart Bookmark
+        </h1>
+      </div>
+
+      {/* ================= NAVIGATION ================= */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
+
         {navItems.map((item) => {
           const Icon = item.icon
-          const active = pathname === item.href
+          const isActive = pathname.startsWith(item.href)
 
           return (
-            <Link key={item.name} href={item.href}>
-              <motion.div
-                whileHover={{ x: 4 }}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
-                  active
-                    ? "bg-black text-white"
-                    : "text-neutral-600 hover:bg-neutral-100"
-                )}
-              >
-                <Icon size={18} />
-                {item.name}
-              </motion.div>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={clsx(
+                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {item.label}
             </Link>
           )
         })}
-      </nav>
+      </div>
+
+      {/* ================= FOOTER / USER ================= */}
+      <div className="px-4 py-4 border-t">
+        <div className="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-3">
+          <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold">
+            A
+          </div>
+          <div>
+            <p className="text-sm font-medium">Admin</p>
+            <p className="text-xs text-muted-foreground">
+              Master Account
+            </p>
+          </div>
+        </div>
+      </div>
     </aside>
   )
 }
