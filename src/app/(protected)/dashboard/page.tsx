@@ -27,9 +27,9 @@ type Bookmark = {
   id: string
   title: string
   url: string
-  tags: string[]
-  note: string
-  favourite: boolean
+  tags?: string[]
+  note?: string
+  favourite?: boolean
   created_at: string
 }
 
@@ -47,7 +47,7 @@ export default function DashboardPage() {
   >("cards")
 
   const [currentPage, setCurrentPage] = useState(1)
-  const [direction, setDirection] = useState(0) // 1 = next, -1 = prev
+  const [direction, setDirection] = useState(0)
 
   const [showAdd, setShowAdd] = useState(false)
   const [editing, setEditing] = useState<Bookmark | null>(null)
@@ -87,12 +87,15 @@ export default function DashboardPage() {
   ============================== */
   async function fetchBookmarks() {
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("bookmarks")
       .select("*")
       .order("created_at", { ascending: false })
 
-    setBookmarks(data || [])
+    if (!error) {
+      setBookmarks(data || [])
+    }
+
     setLoading(false)
   }
 
@@ -198,13 +201,6 @@ export default function DashboardPage() {
       case "za":
         list.sort((a, b) => b.title.localeCompare(a.title))
         break
-      case "newest":
-        list.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() -
-            new Date(a.created_at).getTime()
-        )
-        break
       case "oldest":
         list.sort(
           (a, b) =>
@@ -212,13 +208,19 @@ export default function DashboardPage() {
             new Date(b.created_at).getTime()
         )
         break
+      default:
+        list.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() -
+            new Date(a.created_at).getTime()
+        )
     }
 
     return list
   }, [bookmarks, search, activeTab, sortBy])
 
   /* ==============================
-     PAGINATION LOGIC
+     PAGINATION
   ============================== */
   const totalBookmarks = filteredBookmarks.length
   const totalPages = Math.max(
@@ -252,11 +254,11 @@ export default function DashboardPage() {
   }, [filteredBookmarks])
 
   /* ==============================
-     ANIMATION VARIANTS
+     ANIMATION
   ============================== */
   const variants = {
     enter: (dir: number) => ({
-      x: dir > 0 ? 80 : -80,
+      x: dir > 0 ? 60 : -60,
       opacity: 0,
     }),
     center: {
@@ -264,7 +266,7 @@ export default function DashboardPage() {
       opacity: 1,
     },
     exit: (dir: number) => ({
-      x: dir > 0 ? -80 : 80,
+      x: dir > 0 ? -60 : 60,
       opacity: 0,
     }),
   }
@@ -273,33 +275,40 @@ export default function DashboardPage() {
      UI
   ============================== */
   return (
-    <div className="space-y-8 overflow-hidden">
+    <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-8 max-w-7xl mx-auto">
 
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-semibold">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
           Your Bookmarks
         </h1>
-        <Button onClick={() => setShowAdd(true)}>
+
+        <Button
+          className="w-full sm:w-auto"
+          onClick={() => setShowAdd(true)}
+        >
           + Add Bookmark
         </Button>
       </div>
 
       {/* FILTER BAR */}
-      <div className="bg-card border rounded-2xl p-5 shadow-sm flex flex-wrap gap-4 items-center justify-between">
+      <div className="bg-card border rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
 
         <Input
-          placeholder="Search..."
+          placeholder="Search bookmarks..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value)
             setCurrentPage(1)
           }}
-          className="max-w-sm"
+          className="w-full lg:max-w-sm"
         />
 
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full lg:w-auto">
+
           <Select value={viewMode} onValueChange={(v: any) => setViewMode(v)}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-full sm:w-36">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -314,7 +323,7 @@ export default function DashboardPage() {
             setActiveTab(v)
             setCurrentPage(1)
           }}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-full sm:w-36">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -327,24 +336,29 @@ export default function DashboardPage() {
             setSortBy(v)
             setCurrentPage(1)
           }}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="az">A-Z</SelectItem>
               <SelectItem value="za">Z-A</SelectItem>
-              <SelectItem value="newest">Newest-Oldest</SelectItem>
-              <SelectItem value="oldest">Oldest-Newest</SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="oldest">Oldest</SelectItem>
             </SelectContent>
           </Select>
+
         </div>
       </div>
 
       {/* CONTENT */}
       {loading ? (
-        <div>Loading bookmarks...</div>
+        <div className="text-center py-20 text-muted-foreground">
+          Loading bookmarks...
+        </div>
       ) : totalBookmarks === 0 ? (
-        <div>No bookmarks found.</div>
+        <div className="text-center py-20 text-muted-foreground">
+          No bookmarks found.
+        </div>
       ) : (
         <>
           <AnimatePresence custom={direction} mode="wait">
@@ -356,12 +370,13 @@ export default function DashboardPage() {
               animate="center"
               exit="exit"
               transition={{
-                x: { type: "spring", stiffness: 300, damping: 25 },
+                x: { type: "spring", stiffness: 260, damping: 25 },
                 opacity: { duration: 0.2 },
               }}
             >
+
               {viewMode === "cards" && (
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                   {paginatedBookmarks.map((bookmark) => (
                     <BookmarkCard
                       key={bookmark.id}
@@ -399,34 +414,39 @@ export default function DashboardPage() {
                   onToggleFavourite={toggleFavourite}
                 />
               )}
+
             </motion.div>
           </AnimatePresence>
 
-          {/* PAGINATION CONTROLS */}
-          <div className="flex justify-between items-center pt-8">
+          {/* PAGINATION */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8">
 
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground text-center sm:text-left">
               {totalBookmarks} bookmarks • {totalPages} pages
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap justify-center">
+
               <Button
                 onClick={goPrev}
                 disabled={currentPage === 1}
+                className="w-24"
               >
                 Previous
               </Button>
 
-              <span className="font-medium">
+              <span className="font-medium text-sm sm:text-base">
                 Page {currentPage} of {totalPages}
               </span>
 
               <Button
                 onClick={goNext}
                 disabled={currentPage === totalPages}
+                className="w-24"
               >
                 Next
               </Button>
+
             </div>
           </div>
         </>
@@ -453,6 +473,7 @@ export default function DashboardPage() {
           onConfirm={confirmDelete}
         />
       )}
+
     </div>
   )
 }

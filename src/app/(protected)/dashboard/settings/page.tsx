@@ -1,7 +1,7 @@
 // src/app/(protected)/dashboard/settings/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "next-themes";
-import { Loader2, Trash2, LogOut, Edit2 } from "lucide-react";
+import { Loader2, Trash2, LogOut, Edit2, X } from "lucide-react";
 import { format } from "date-fns";
 
 type Country = { name: string; cca2: string; dialCode?: string };
@@ -36,7 +36,7 @@ export default function SettingsPage() {
   // local editable state (mirrors profile fields)
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
-  const [country, setCountry] = useState<string | null>(null); // store cca2 or null
+  const [country, setCountry] = useState<string | null>(null); // cca2 or null
   const [stateName, setStateName] = useState<string | null>(null);
   const [dialCode, setDialCode] = useState("+91");
   const [phone, setPhone] = useState("");
@@ -47,10 +47,15 @@ export default function SettingsPage() {
   const [countriesLoading, setCountriesLoading] = useState(false);
   const [statesLoading, setStatesLoading] = useState(false);
 
+  // guard to avoid double-run in StrictMode/dev
+  const didFetchRef = useRef(false);
+
   /* -------------------------
      Fetch current user and profile
   ------------------------- */
   useEffect(() => {
+    if (didFetchRef.current) return;
+    didFetchRef.current = true;
     fetchUserAndProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -69,28 +74,24 @@ export default function SettingsPage() {
 
       setEmail(currentUser.email || "");
 
-      // fetch profile row from profiles table (assuming RLS allows)
       const { data: profileData, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", currentUser.id)
         .single();
 
-      if (error && error.code !== "PGRST116") {
-        // PGRST116 is "No rows" (in some setups) - ignore if not found
+      // ignore "no rows" style errors in some setups (keep behavior unchanged)
+      if (error && (error as any).code !== "PGRST116") {
         console.warn("fetch profile error:", error);
       }
 
       if (profileData) {
         setProfile(profileData);
-        // populate editable state with profile table data
         setDisplayName(profileData.display_name ?? "");
         setCountry(profileData.country ?? null);
         setStateName(profileData.state ?? null);
         setDialCode(profileData.dial_code ?? "+91");
         setPhone(profileData.phone ?? "");
-      } else {
-        // if no profile row exists, keep defaults. You may want to create one on first save.
       }
     } catch (err) {
       console.error("fetchUserAndProfile", err);
@@ -104,7 +105,6 @@ export default function SettingsPage() {
   ------------------------- */
   useEffect(() => {
     let cancelled = false;
-
     async function loadCountries() {
       setCountriesLoading(true);
       try {
@@ -174,19 +174,21 @@ export default function SettingsPage() {
       setStates([]);
       setStateName(null);
       try {
-        // find the country name from the cca2
         const cObj = countries.find((c) => c.cca2 === country);
         const countryName = cObj?.name ?? "";
         if (!countryName) {
-          setStates([]);
+          if (!cancelled) setStates([]);
           return;
         }
 
-        const res = await fetch("https://countriesnow.space/api/v0.1/countries/states", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ country: countryName }),
-        });
+        const res = await fetch(
+          "https://countriesnow.space/api/v0.1/countries/states",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ country: countryName }),
+          }
+        );
         if (!res.ok) throw new Error("states fetch failed");
         const json = await res.json();
         if (json?.data?.states && Array.isArray(json.data.states)) {
@@ -203,7 +205,6 @@ export default function SettingsPage() {
       }
     }
 
-    // set dial code when country selected (if available)
     const pick = countries.find((c) => c.cca2 === country);
     if (pick?.dialCode) setDialCode(pick.dialCode);
 
@@ -242,7 +243,6 @@ export default function SettingsPage() {
     };
 
     try {
-      // upsert into profiles table (RLS should allow user to upsert their own row)
       const { data: upserted, error: upsertErr } = await supabase
         .from("profiles")
         .upsert(payload, { onConflict: "user_id", returning: "representation" })
@@ -253,11 +253,9 @@ export default function SettingsPage() {
         console.error("upsert profile error", upsertErr);
         alert("Failed to save profile.");
       } else {
-        // keep local profile state refreshed
         setProfile(upserted);
       }
 
-      // optional: update auth user display name so pre-existing auth-based UX sees name
       if (displayName) {
         const { error: authErr } = await supabase.auth.updateUser({
           data: { display_name: displayName },
@@ -271,7 +269,6 @@ export default function SettingsPage() {
       alert("Unexpected error while saving.");
     } finally {
       setSaving(false);
-      // refresh to be safe
       fetchUserAndProfile();
     }
   }
@@ -303,10 +300,22 @@ export default function SettingsPage() {
   const themeValue = mounted ? theme ?? resolvedTheme : "system";
 
   /* -------------------------
+     Modal helpers: focus + scroll lock
+  ------------------------- */
+  useEffect(() => {
+    if (!openEdit) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [openEdit]);
+
+  /* -------------------------
      Render
   ------------------------- */
   return (
-    <div className="max-w-5xl mx-auto py-6 space-y-8">
+    <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-8 min-w-0">
       <div>
         <h1 className="text-3xl font-semibold">Settings</h1>
         <p className="text-muted-foreground mt-1">Manage your account and profile</p>
@@ -317,11 +326,11 @@ export default function SettingsPage() {
           <CardTitle>Profile</CardTitle>
         </CardHeader>
 
-        <CardContent className="flex items-center justify-between">
-          <div>
+        <CardContent className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="min-w-0">
             <div className="text-sm text-muted-foreground">Signed in as</div>
-            <div className="font-medium">{email || "—"}</div>
-            <div className="text-sm text-muted-foreground mt-1">
+            <div className="font-medium truncate max-w-md">{email || "—"}</div>
+            <div className="text-sm text-muted-foreground mt-2">
               {profile?.display_name ?? displayName ?? "No display name"}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
@@ -331,12 +340,17 @@ export default function SettingsPage() {
           </div>
 
           <div className="flex gap-3">
-            <Button variant="ghost" onClick={() => setOpenEdit(true)}>
+            <Button
+              variant="ghost"
+              onClick={() => setOpenEdit(true)}
+              aria-label="Edit profile"
+              title="Edit profile"
+            >
               <Edit2 className="mr-2 h-4 w-4" />
               Edit Profile
             </Button>
 
-            <Button onClick={fetchUserAndProfile} variant="outline">
+            <Button onClick={fetchUserAndProfile} variant="outline" aria-label="Refresh profile" title="Refresh profile">
               {loadingProfile ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
               Refresh
             </Button>
@@ -349,7 +363,7 @@ export default function SettingsPage() {
           <CardTitle>Appearance</CardTitle>
         </CardHeader>
 
-        <CardContent className="flex justify-between items-center">
+        <CardContent className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
             <div className="text-sm font-medium">Dark Mode</div>
             <p className="text-xs text-muted-foreground">Toggle site appearance</p>
@@ -357,7 +371,11 @@ export default function SettingsPage() {
 
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted-foreground">Light</span>
-            <Switch checked={themeValue === "dark"} onCheckedChange={(v) => setTheme(v ? "dark" : "light")} />
+            <Switch
+              checked={themeValue === "dark"}
+              onCheckedChange={(v) => setTheme(v ? "dark" : "light")}
+              aria-label="Toggle dark mode"
+            />
             <span className="text-xs text-muted-foreground">Dark</span>
           </div>
         </CardContent>
@@ -368,13 +386,13 @@ export default function SettingsPage() {
           <CardTitle className="text-red-600">Danger Zone</CardTitle>
         </CardHeader>
 
-        <CardContent className="flex gap-4">
-          <Button variant="outline" onClick={logout}>
+        <CardContent className="flex flex-col sm:flex-row gap-4">
+          <Button variant="outline" onClick={logout} aria-label="Logout">
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
 
-          <Button variant="destructive" onClick={deleteAccount}>
+          <Button variant="destructive" onClick={deleteAccount} aria-label="Delete account">
             <Trash2 className="mr-2 h-4 w-4" />
             Delete Account
           </Button>
@@ -392,9 +410,9 @@ export default function SettingsPage() {
           stateName={stateName}
           setStateName={(v: string | null) => setStateName(v)}
           dialCode={dialCode}
-          setDialCode={setDialCode}
+          setDialCode={(v: string) => setDialCode(v)}
           phone={phone}
-          setPhone={setPhone}
+          setPhone={(v: string) => setPhone(v)}
           countries={countries}
           countriesLoading={countriesLoading}
           states={states}
@@ -410,7 +428,7 @@ export default function SettingsPage() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* ProfileModal - inline modal implementation (keeps compatibility)          */
+/* ProfileModal - responsive, accessible modal (keeps compatibility)         */
 /* -------------------------------------------------------------------------- */
 function ProfileModal({
   displayName,
@@ -433,40 +451,74 @@ function ProfileModal({
   onSave,
   onClose,
 }: any) {
+  const firstInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    firstInputRef.current?.focus();
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="profile-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    >
       <div className="relative w-full max-w-2xl bg-white dark:bg-[#0b1220] rounded-2xl shadow-2xl overflow-hidden border">
-        <div className="p-6 border-b flex items-center justify-between">
+        <div className="p-4 sm:p-6 border-b flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-semibold">Edit profile</h3>
+            <h3 id="profile-modal-title" className="text-lg font-semibold">
+              Edit profile
+            </h3>
             <p className="text-xs text-muted-foreground">Update name, contact and location</p>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={onClose}>
+            <Button variant="ghost" onClick={onClose} aria-label="Cancel edit">
+              <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-            <Button onClick={onSave} disabled={saving}>
+            <Button onClick={onSave} disabled={saving} aria-label="Save profile">
               {saving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
               Save
             </Button>
           </div>
         </div>
 
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Display name</Label>
-            <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Jane Doe" />
+            <Label htmlFor="displayName">Display name</Label>
+            <Input
+              id="displayName"
+              ref={firstInputRef}
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Jane Doe"
+            />
           </div>
 
           <div className="space-y-2">
-            <Label>Email</Label>
-            <Input value={email} disabled />
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" value={email} disabled />
           </div>
 
           <div className="space-y-2">
-            <Label>Country</Label>
-            <Select value={country ?? ""} onValueChange={(v: string) => setCountry(v || null)}>
+            <Label htmlFor="country">Country</Label>
+            <Select
+              value={country ?? ""}
+              onValueChange={(v: string) => setCountry(v || null)}
+              aria-label="Select country"
+            >
               <SelectTrigger>
                 <SelectValue placeholder={countriesLoading ? "Loading countries..." : "Select country"} />
               </SelectTrigger>
@@ -481,19 +533,22 @@ function ProfileModal({
           </div>
 
           <div className="space-y-2">
-            <Label>State / Region</Label>
-            {/* If there are no states, show a disabled input instead of empty select */}
+            <Label htmlFor="state">State / Region</Label>
             {statesLoading ? (
               <Input value="Loading..." disabled />
             ) : states.length === 0 ? (
               <Input value="No states available" disabled />
             ) : (
-              <Select value={stateName ?? ""} onValueChange={(v: string) => setStateName(v || null)}>
+              <Select
+                value={stateName ?? ""}
+                onValueChange={(v: string) => setStateName(v || null)}
+                aria-label="Select state"
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent>
-                  {states.map((s) => (
+                  {states.map((s: any) => (
                     <SelectItem key={s.name} value={s.name}>
                       {s.name}
                     </SelectItem>
@@ -504,25 +559,38 @@ function ProfileModal({
           </div>
 
           <div className="space-y-2">
-            <Label>Dial code</Label>
-            <Select value={dialCode ?? ""} onValueChange={(v: string) => setDialCode(v)}>
+            <Label htmlFor="dial">Dial code</Label>
+            <Select value={dialCode ?? ""} onValueChange={(v: string) => setDialCode(v)} aria-label="Dial code">
               <SelectTrigger>
                 <SelectValue placeholder="Dial code" />
               </SelectTrigger>
               <SelectContent>
-                {dialCodes.map((d: string) => (
-                  <SelectItem key={d} value={d}>
-                    {d}
-                  </SelectItem>
-                ))}
+                {dialCodes.length === 0 ? (
+                  <SelectItem value="+91">+91</SelectItem>
+                ) : (
+                  dialCodes.map((d: string) => (
+                    <SelectItem key={d} value={d}>
+                      {d}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <Label>Phone</Label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} placeholder="9876543210" />
-            <p className="text-xs text-muted-foreground">Used for verification and recovery.</p>
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+              placeholder="9876543210"
+              inputMode="tel"
+              aria-describedby="phone-desc"
+            />
+            <p id="phone-desc" className="text-xs text-muted-foreground">
+              Used for verification and recovery.
+            </p>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,20 +39,28 @@ export default function ContactPage() {
   const [states, setStates] = useState<StateItem[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  /* ---------------- FETCH COUNTRIES ---------------- */
+  /* ==============================
+     FETCH COUNTRIES (SAFE)
+  ============================== */
   useEffect(() => {
     async function loadCountries() {
       try {
         const res = await fetch("https://restcountries.com/v3.1/all")
-        const data = await res.json()
+        const json = await res.json()
 
-        const mapped = data
+        if (!Array.isArray(json)) {
+          console.error("Invalid countries response:", json)
+          return
+        }
+
+        const mapped = json
           .map((c: any) => {
             let dial = c?.idd?.root
               ? c.idd.root + (c?.idd?.suffixes?.[0] ?? "")
               : undefined
+
             return {
-              name: c?.name?.common,
+              name: c?.name?.common ?? "",
               dialCode: dial,
             }
           })
@@ -63,15 +71,22 @@ export default function ContactPage() {
 
         setCountries(mapped)
       } catch (err) {
-        console.error(err)
+        console.error("Failed loading countries:", err)
       }
     }
+
     loadCountries()
   }, [])
 
-  /* ---------------- FETCH STATES ---------------- */
+  /* ==============================
+     FETCH STATES (SAFE)
+  ============================== */
   useEffect(() => {
-    if (!country) return
+    if (!country) {
+      setStates([])
+      return
+    }
+
     async function loadStates() {
       try {
         const res = await fetch(
@@ -82,8 +97,14 @@ export default function ContactPage() {
             body: JSON.stringify({ country }),
           }
         )
+
         const json = await res.json()
-        setStates(json?.data?.states || [])
+
+        if (Array.isArray(json?.data?.states)) {
+          setStates(json.data.states)
+        } else {
+          setStates([])
+        }
       } catch {
         setStates([])
       }
@@ -95,26 +116,35 @@ export default function ContactPage() {
     if (pick?.dialCode) setDialCode(pick.dialCode)
   }, [country, countries])
 
-  /* ---------------- VALIDATION ---------------- */
+  /* ==============================
+     VALIDATION
+  ============================== */
   function validate() {
     const e: Record<string, string> = {}
+
     if (!name) e.name = "Name required"
     if (!email || !/^\S+@\S+\.\S+$/.test(email))
       e.email = "Valid email required"
     if (!phone) e.phone = "Phone required"
     if (!message) e.message = "Message required"
+
     setErrors(e)
     return Object.keys(e).length === 0
   }
 
-  /* ---------------- SUBMIT ---------------- */
+  /* ==============================
+     SUBMIT
+  ============================== */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!validate()) return
+
     setSubmitting(true)
+
     try {
       await fetch("/api/contact", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
           email,
@@ -126,7 +156,9 @@ export default function ContactPage() {
           message,
         }),
       })
+
       toast.success("Message sent successfully!")
+
       setName("")
       setEmail("")
       setPhone("")
@@ -138,15 +170,18 @@ export default function ContactPage() {
     }
   }
 
+  /* ==============================
+     UI
+  ============================== */
   return (
     <>
       <Navbar />
 
-      <section className="relative min-h-screen px-6 py-24 overflow-hidden">
+      <section className="relative min-h-screen px-4 sm:px-6 lg:px-8 py-20 overflow-hidden">
 
-        {/* Hero Gradient */}
-        <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
+        {/* Background Gradients */}
+        <div className="absolute left-[-250px] top-0 w-[500px] h-[500px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute right-[-250px] bottom-0 w-[500px] h-[500px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
         <motion.div
           initial="hidden"
@@ -154,39 +189,23 @@ export default function ContactPage() {
           variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
           className="relative z-10 max-w-7xl mx-auto space-y-16"
         >
-
           {/* HEADER */}
           <motion.div variants={fadeUp} className="text-center space-y-6">
-            <h1 className="text-5xl md:text-6xl font-bold">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold leading-tight">
               Get in Touch
               <span className="block text-primary mt-2">
                 We'd Love to Hear From You
               </span>
             </h1>
 
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto">
               Whether you have a question, partnership inquiry,
               or need product support — our team is here to help.
             </p>
-
-            <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2">
-                <ShieldCheck size={16} />
-                Secure Communication
-              </span>
-              <span className="flex items-center gap-2">
-                <Zap size={16} />
-                Fast Response
-              </span>
-              <span className="flex items-center gap-2">
-                <Cloud size={16} />
-                Cloud Infrastructure
-              </span>
-            </div>
           </motion.div>
 
           {/* TWO PANEL */}
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
 
             {/* LEFT */}
             <motion.div variants={fadeUp} className="space-y-6">
@@ -197,19 +216,13 @@ export default function ContactPage() {
                 <li>• Bug reports & feature suggestions</li>
                 <li>• Billing & account questions</li>
               </ul>
-
-              <div className="pt-6 border-t">
-                <p className="text-sm text-muted-foreground">
-                  We typically respond within 1 business day.
-                </p>
-              </div>
             </motion.div>
 
-            {/* RIGHT FORM */}
+            {/* FORM */}
             <motion.form
               variants={fadeUp}
               onSubmit={handleSubmit}
-              className="bg-white p-8 rounded-2xl shadow-xl space-y-4"
+              className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-2xl shadow-xl space-y-4"
             >
               <Input
                 placeholder="Full Name"
@@ -225,11 +238,11 @@ export default function ContactPage() {
               />
               {errors.email && <p className="text-xs text-red-600">{errors.email}</p>}
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 gap-4">
                 <select
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  className="border rounded px-3 py-2"
+                  className="border rounded px-3 py-2 w-full"
                 >
                   <option value="">Select Country</option>
                   {countries.map((c) => (
@@ -242,10 +255,10 @@ export default function ContactPage() {
                 <select
                   value={stateName}
                   onChange={(e) => setStateName(e.target.value)}
-                  className="border rounded px-3 py-2"
+                  className="border rounded px-3 py-2 w-full"
                 >
                   <option value="">Select State</option>
-                  {states.map((s: any) => (
+                  {states.map((s) => (
                     <option key={s.name} value={s.name}>
                       {s.name}
                     </option>
@@ -253,24 +266,23 @@ export default function ContactPage() {
                 </select>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-3 gap-4">
                 <select
                   value={dialCode}
                   onChange={(e) => setDialCode(e.target.value)}
-                  className="border rounded px-3 py-2"
+                  className="border rounded px-3 py-2 w-full"
                 >
-                  {countries.map(
-                    (c) =>
-                      c.dialCode && (
-                        <option key={c.dialCode} value={c.dialCode}>
-                          {c.dialCode}
-                        </option>
-                      )
-                  )}
+                  {countries
+                    .filter((c) => c.dialCode)
+                    .map((c) => (
+                      <option key={c.dialCode} value={c.dialCode}>
+                        {c.dialCode}
+                      </option>
+                    ))}
                 </select>
 
                 <Input
-                  className="md:col-span-2"
+                  className="sm:col-span-2"
                   placeholder="Phone Number"
                   value={phone}
                   onChange={(e) =>
@@ -285,9 +297,6 @@ export default function ContactPage() {
                 onChange={(e) => setMessage(e.target.value)}
                 rows={5}
               />
-              {errors.message && (
-                <p className="text-xs text-red-600">{errors.message}</p>
-              )}
 
               <Button type="submit" disabled={submitting} className="w-full">
                 {submitting ? "Sending..." : "Send Message"}
@@ -296,7 +305,7 @@ export default function ContactPage() {
           </div>
         </motion.div>
       </section>
-<br/>
+
       <Footer />
     </>
   )

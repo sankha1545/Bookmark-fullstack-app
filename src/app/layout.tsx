@@ -25,30 +25,39 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html
+      lang="en"
+      className="scroll-smooth"
+      suppressHydrationWarning
+    >
       <body
         className={`
-          ${geistSans.variable} 
+          ${geistSans.variable}
           ${geistMono.variable}
-          font-sans 
-          antialiased 
-          bg-background 
+          font-sans
+          antialiased
+          bg-background
           text-foreground
-          min-h-screen
+          min-h-dvh
+          overflow-x-hidden
           selection:bg-primary/20
         `}
       >
         {/* Main App Wrapper */}
-        <div className="relative flex min-h-screen flex-col">
-          {children}
+        <div className="relative flex min-h-dvh flex-col">
+          {/* Content Area */}
+          <main className="flex-1 w-full">
+            {children}
+          </main>
         </div>
 
         {/* Global Toast Notifications */}
         <Toaster
           richColors
           position="top-right"
+          closeButton
           toastOptions={{
-            className: "rounded-xl",
+            className: "rounded-xl shadow-lg",
           }}
         />
       </body>

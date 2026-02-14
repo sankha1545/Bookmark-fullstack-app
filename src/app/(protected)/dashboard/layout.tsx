@@ -9,6 +9,9 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  /* ======================================
+     AUTH (UNCHANGED)
+  ====================================== */
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
@@ -23,7 +26,7 @@ export default async function DashboardLayout({
           cookieStore.set({ name, value, ...options })
         },
         remove(name: string) {
-          cookieStore.delete(name)   // ✅ IMPORTANT FIX
+          cookieStore.delete(name)
         },
       },
     }
@@ -37,15 +40,38 @@ export default async function DashboardLayout({
     redirect("/login")
   }
 
+  /* ======================================
+     RESPONSIVE LAYOUT
+  ====================================== */
   return (
-    <div className="flex h-screen bg-muted/30">
+    <div className="flex min-h-dvh w-full bg-muted/30 overflow-hidden">
+
+      {/* SIDEBAR */}
       <Sidebar user={user} />
 
-      <div className="flex-1 flex flex-col">
+      {/* MAIN WRAPPER */}
+      <div className="flex-1 flex flex-col min-w-0">
+
+        {/* TOPBAR */}
         <Topbar user={user} />
-        <main className="flex-1 overflow-y-auto p-8">
-          {children}
+
+        {/* PAGE CONTENT */}
+        <main
+          className="
+            flex-1
+            overflow-y-auto
+            overflow-x-hidden
+            px-4
+            sm:px-6
+            lg:px-8
+            py-6
+          "
+        >
+          <div className="w-full max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
+
       </div>
     </div>
   )
