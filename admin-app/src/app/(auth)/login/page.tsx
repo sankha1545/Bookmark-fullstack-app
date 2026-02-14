@@ -3,10 +3,17 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Loader2, ShieldCheck, Zap, Cloud } from "lucide-react"
+import { Button } from "@/src/components/ui/button"
+import { Input } from "@/src/components/ui/input"
+import { Card, CardContent } from "@/src/components/ui/card"
+import {
+  Loader2,
+  ShieldCheck,
+  Zap,
+  Cloud,
+  Eye,
+  EyeOff,
+} from "lucide-react"
 import { toast } from "sonner"
 
 export default function AdminLoginPage() {
@@ -15,6 +22,7 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -54,7 +62,7 @@ export default function AdminLoginPage() {
 
       <div className="w-full max-w-6xl grid md:grid-cols-2 gap-16 items-center">
 
-        {/* LEFT SIDE — MARKETING SECTION */}
+        {/* LEFT SIDE */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
@@ -116,6 +124,7 @@ export default function AdminLoginPage() {
 
               <form onSubmit={handleLogin} className="space-y-5">
 
+                {/* EMAIL */}
                 <div className="space-y-2">
                   <Input
                     type="email"
@@ -125,15 +134,31 @@ export default function AdminLoginPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                {/* PASSWORD WITH TOGGLE */}
+                <div className="relative space-y-2">
                   <Input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Enter password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    className="pr-10"
                   />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-800 transition"
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
                 </div>
 
+                {/* SUBMIT */}
                 <Button
                   type="submit"
                   disabled={loading}
