@@ -1,3 +1,4 @@
+// app/dashboard/page.tsx
 import {
   getDashboardStats,
   getDailyUsers,
@@ -6,16 +7,25 @@ import {
 
 import DashboardClient from "@/src/components/dashboard/DashboardClient"
 
+export const revalidate = 60 // cache for 60s (adjust as needed)
+
 export default async function DashboardPage() {
-  const stats = await getDashboardStats()
-  const dailyUsers = await getDailyUsers()
-  const bookmarksData = await getBookmarksAnalytics()
+  // fetch server-side so client receives initial data preloaded (fast TTI)
+  const [stats, dailyUsers, bookmarksData] = await Promise.all([
+    getDashboardStats(),
+    getDailyUsers(),
+    getBookmarksAnalytics(),
+  ])
 
   return (
-    <DashboardClient
-      initialStats={stats}
-      initialDailyUsers={dailyUsers}
-      initialBookmarks={bookmarksData}
-    />
+    <main className="min-h-screen px-6 py-8 lg:px-12 bg-gradient-to-b from-neutral-50 to-white dark:from-black dark:to-neutral-900 transition-colors">
+      <div className="mx-auto max-w-7xl">
+        <DashboardClient
+          initialStats={stats}
+          initialDailyUsers={dailyUsers}
+          initialBookmarks={bookmarksData}
+        />
+      </div>
+    </main>
   )
 }

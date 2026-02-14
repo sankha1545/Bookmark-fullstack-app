@@ -30,7 +30,7 @@ export default function BookmarksLineChart({ data }: Props) {
   const [dailyRange, setDailyRange] = useState<DailyRange>(7)
 
   /* =====================================
-     FILTER + GROUPING LOGIC (SAFE)
+     FILTER + GROUPING LOGIC (UNCHANGED)
   ===================================== */
 
   const filteredData = useMemo(() => {
@@ -57,7 +57,6 @@ export default function BookmarksLineChart({ data }: Props) {
 
       sorted.forEach((item) => {
         const d = new Date(item.date)
-
         const key = `${d.getFullYear()}-${String(
           d.getMonth() + 1
         ).padStart(2, "0")}`
@@ -93,25 +92,52 @@ export default function BookmarksLineChart({ data }: Props) {
   }, [data, view, dailyRange])
 
   /* =====================================
+     X-AXIS LABEL FORMATTER
+  ===================================== */
+
+  const formatXAxis = (value: string) => {
+    if (view === "daily") {
+      const d = new Date(value)
+      if (isNaN(d.getTime())) return value
+      return `${d.getDate()}/${d.getMonth() + 1}`
+    }
+
+    if (view === "monthly") {
+      const [year, month] = value.split("-")
+      return `${month}/${year.slice(2)}`
+    }
+
+    return value
+  }
+
+  /* =====================================
+     RESPONSIVE HEIGHT
+  ===================================== */
+
+  const chartHeight = 260
+
+  /* =====================================
      RENDER
   ===================================== */
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm space-y-6">
+    <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm space-y-6 w-full">
+
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h3 className="text-lg font-semibold">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <h3 className="text-base sm:text-lg font-semibold">
           Bookmarks Added Over Time
         </h3>
 
         {/* Main Filters */}
         <div className="flex gap-2 flex-wrap">
-          {["daily", "monthly", "yearly"].map((mode) => (
+          {(["daily", "monthly", "yearly"] as ViewMode[]).map((mode) => (
             <Button
               key={mode}
               size="sm"
               variant={view === mode ? "default" : "outline"}
-              onClick={() => setView(mode as ViewMode)}
+              onClick={() => setView(mode)}
+              className="capitalize"
             >
               {mode}
             </Button>
@@ -121,7 +147,7 @@ export default function BookmarksLineChart({ data }: Props) {
 
       {/* Daily Sub Filters */}
       {view === "daily" && (
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {[7, 30, 60].map((range) => (
             <Button
               key={range}
@@ -135,39 +161,53 @@ export default function BookmarksLineChart({ data }: Props) {
         </div>
       )}
 
-      {/* Chart */}
-      <ResponsiveContainer width="100%" height={320}>
-        <LineChart data={filteredData}>
-          <CartesianGrid strokeDasharray="3 3" />
+      {/* Chart Wrapper (prevents overflow on small screens) */}
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-[320px] sm:min-w-0">
 
-          <XAxis
-            dataKey="date"
-            tick={{ fontSize: 12 }}
-          />
+          <ResponsiveContainer width="100%" height={chartHeight}>
+            <LineChart
+              data={filteredData}
+              margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
 
-          <YAxis
-            allowDecimals={false}
-            tick={{ fontSize: 12 }}
-          />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11 }}
+                tickFormatter={formatXAxis}
+                interval="preserveStartEnd"
+              />
 
-          <Tooltip
-            contentStyle={{
-              borderRadius: "12px",
-              border: "1px solid #e5e5e5",
-            }}
-          />
+              <YAxis
+                allowDecimals={false}
+                tick={{ fontSize: 11 }}
+              />
 
-          <Line
-            type="monotone"
-            dataKey="bookmarks"
-            stroke="#000"
-            strokeWidth={3}
-            dot={{ r: 3 }}
-            activeDot={{ r: 6 }}
-            animationDuration={500}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+              <Tooltip
+                contentStyle={{
+                  borderRadius: "12px",
+                  border: "1px solid #e5e5e5",
+                  fontSize: "12px",
+                }}
+                labelFormatter={(label) => formatXAxis(label)}
+              />
+
+              <Line
+                type="monotone"
+                dataKey="bookmarks"
+                stroke="#000"
+                strokeWidth={3}
+                dot={{ r: 3 }}
+                activeDot={{ r: 6 }}
+                animationDuration={400}
+              />
+            </LineChart>
+
+          </ResponsiveContainer>
+
+        </div>
+      </div>
     </div>
   )
 }

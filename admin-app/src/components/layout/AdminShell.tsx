@@ -1,46 +1,98 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Sidebar from "./Sidebar"
 import Topbar from "./Topbar"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function AdminShell({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  /* ===============================
+     Lock body scroll when open
+  =============================== */
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [mobileOpen])
+
+  /* ===============================
+     Close on ESC
+  =============================== */
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileOpen(false)
+      }
+    }
+
+    window.addEventListener("keydown", handleKey)
+    return () => window.removeEventListener("keydown", handleKey)
+  }, [])
+
   return (
-    <div className="relative flex h-screen bg-background overflow-hidden">
+    <div className="relative flex min-h-screen w-full bg-background">
 
-      {/* ================= Background Glow ================= */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-[-20%] left-[-10%] h-[600px] w-[600px] rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute bottom-[-20%] right-[-10%] h-[600px] w-[600px] rounded-full bg-indigo-500/10 blur-3xl" />
-      </div>
-
-      {/* ================= Sidebar (Fixed) ================= */}
-      <div className="flex-shrink-0">
+      {/* ================= Desktop Sidebar ================= */}
+      <div className="hidden lg:flex lg:w-72 flex-shrink-0 border-r bg-background">
         <Sidebar />
       </div>
 
-      {/* ================= Main Column ================= */}
-      <div className="flex flex-1 flex-col overflow-hidden relative">
+      {/* ================= Mobile Sidebar ================= */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              key="overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+            />
 
-        {/* ================= Topbar (Fixed) ================= */}
-        <div className="flex-shrink-0 z-10">
-          <Topbar />
-        </div>
+            {/* Drawer */}
+            <motion.div
+              key="drawer"
+              initial={{ x: -320 }}
+              animate={{ x: 0 }}
+              exit={{ x: -320 }}
+              transition={{ type: "spring", stiffness: 260, damping: 25 }}
+              className="fixed top-0 left-0 z-50 h-full w-72 bg-background border-r shadow-xl lg:hidden"
+            >
+              <Sidebar />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-        {/* ================= Scrollable Content ================= */}
+      {/* ================= Main Area ================= */}
+      <div className="flex flex-1 flex-col min-w-0">
+
+        {/* Topbar */}
+        <Topbar onMenuClick={() => setMobileOpen(true)} />
+
+        {/* Content */}
         <motion.main
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="flex-1 overflow-y-auto p-10"
+          transition={{ duration: 0.25 }}
+          className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6"
         >
-          <div className="mx-auto max-w-7xl">
-            {children}
-          </div>
+          {children}
         </motion.main>
 
       </div>

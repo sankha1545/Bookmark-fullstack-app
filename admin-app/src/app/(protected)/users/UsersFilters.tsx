@@ -15,7 +15,7 @@ interface Props {
   searchQuery: string
   setSearchQuery: (v: string) => void
   sortBy: string
-  setSortBy: (v: any) => void
+  setSortBy: (v: string) => void
   startDate: string
   setStartDate: (v: string) => void
   endDate: string
@@ -35,11 +35,11 @@ export default function UsersFilters({
   onClear,
 }: Props) {
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between rounded-2xl border bg-background/60 backdrop-blur-xl p-5 shadow-sm">
+    <div className="w-full flex flex-col gap-4 sm:gap-5 md:gap-6 lg:flex-row lg:items-end lg:justify-between rounded-2xl border bg-background/60 backdrop-blur-xl p-4 sm:p-5 shadow-sm">
 
-      {/* SEARCH */}
-      <div className="relative w-full lg:w-96">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+      {/* ================= SEARCH ================= */}
+      <div className="relative w-full sm:w-full md:w-full lg:w-80 xl:w-96">
+        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
         <Input
           placeholder="Search users..."
           className="pl-9"
@@ -48,8 +48,8 @@ export default function UsersFilters({
         />
       </div>
 
-      {/* SORT */}
-      <div className="w-full lg:w-60">
+      {/* ================= SORT ================= */}
+      <div className="w-full sm:w-full md:w-full lg:w-56">
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger>
             <SelectValue placeholder="Sort users" />
@@ -63,27 +63,31 @@ export default function UsersFilters({
         </Select>
       </div>
 
-      {/* DATE RANGE */}
-      <div className="flex gap-3">
+      {/* ================= DATE RANGE ================= */}
+      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
         <Input
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
+          className="w-full sm:w-auto"
         />
         <Input
           type="date"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
+          className="w-full sm:w-auto"
         />
       </div>
 
-      {/* CLEAR */}
+      {/* ================= CLEAR ================= */}
       <Button
         variant="outline"
         onClick={onClear}
+        className="w-full sm:w-auto"
       >
         Clear
       </Button>
+
     </div>
   )
 }

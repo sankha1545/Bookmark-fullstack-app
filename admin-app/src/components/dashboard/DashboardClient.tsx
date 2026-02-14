@@ -1,18 +1,62 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/src/components/ui/button"
-import { RefreshCw, Loader2 } from "lucide-react"
+import { Card } from "@/src/components/ui/card"
+import { Switch } from "@/src/components/ui/switch"
+import { Badge } from "@/src/components/ui/badge"
+import { RefreshCw, Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
+import { motion } from "framer-motion"
 
 import StatsCard from "@/src/components/analytics/StatsCard"
 import DailyUsersBarChart from "@/src/components/analytics/DailyUsersBarChart"
 import BookmarksLineChart from "@/src/components/analytics/BookmarksLineChart"
 
+/* =========================================================
+   TYPES
+========================================================= */
+
+type DashboardStats = {
+  totalUsers: number
+  activeUsers: number
+  totalMessages: number
+}
+
+type DailyUser = {
+  date: string
+  value: number
+}
+
+type BookmarkData = {
+  date: string
+  value: number
+}
+
+/* =========================================================
+   SAFE SANITIZER
+========================================================= */
+
+function sanitizeNumber(value: any) {
+  return Number(value) || 0
+}
+
+function sanitizeArray(arr: any[] | undefined) {
+  if (!Array.isArray(arr)) return []
+  return arr.map((item) => ({
+    ...item,
+    value: sanitizeNumber(item.value),
+  }))
+}
+
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 type Props = {
-  initialStats: any
-  initialDailyUsers: any[]
-  initialBookmarks: any[]
+  initialStats: DashboardStats
+  initialDailyUsers: DailyUser[]
+  initialBookmarks: BookmarkData[]
 }
 
 export default function DashboardClient({
@@ -20,19 +64,51 @@ export default function DashboardClient({
   initialDailyUsers,
   initialBookmarks,
 }: Props) {
-  const [stats, setStats] = useState(initialStats)
-  const [dailyUsers, setDailyUsers] = useState(initialDailyUsers)
-  const [bookmarksData, setBookmarksData] = useState(initialBookmarks)
-  const [loading, setLoading] = useState(false)
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: sanitizeNumber(initialStats?.totalUsers),
+    activeUsers: sanitizeNumber(initialStats?.activeUsers),
+    totalMessages: sanitizeNumber(initialStats?.totalMessages),
+  })
 
+  const [dailyUsers, setDailyUsers] = useState<DailyUser[]>(
+    sanitizeArray(initialDailyUsers)
+  )
+
+  const [bookmarksData, setBookmarksData] = useState<BookmarkData[]>(
+    sanitizeArray(initialBookmarks)
+  )
+
+  const [loading, setLoading] = useState(false)
+  const [autoRefresh, setAutoRefresh] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [mounted, setMounted] = useState(false)
 
-  /* ✅ Prevent Hydration Mismatch */
+  /* =========================================================
+     MOUNT FIX
+  ========================================================= */
+
   useEffect(() => {
     setMounted(true)
     setLastUpdated(new Date())
   }, [])
+
+  /* =========================================================
+     AUTO REFRESH
+  ========================================================= */
+
+  useEffect(() => {
+    if (!autoRefresh) return
+
+    const interval = setInterval(() => {
+      refreshDashboard()
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [autoRefresh])
+
+  /* =========================================================
+     REFRESH LOGIC
+  ========================================================= */
 
   async function refreshDashboard() {
     setLoading(true)
@@ -42,41 +118,84 @@ export default function DashboardClient({
       const data = await res.json()
 
       if (!res.ok) {
-        toast.error("Failed to refresh data")
+        toast.error("Failed to refresh analytics")
         return
       }
 
-      setStats(data.stats)
-      setDailyUsers(data.dailyUsers)
-      setBookmarksData(data.bookmarks)
+      setStats({
+        totalUsers: sanitizeNumber(data.stats?.totalUsers),
+        activeUsers: sanitizeNumber(data.stats?.activeUsers),
+        totalMessages: sanitizeNumber(data.stats?.totalMessages),
+      })
+
+      setDailyUsers(sanitizeArray(data.dailyUsers))
+      setBookmarksData(sanitizeArray(data.bookmarks))
       setLastUpdated(new Date())
 
-      toast.success("Dashboard refreshed")
+      toast.success("Dashboard updated")
     } catch {
-      toast.error("Server error")
+      toast.error("Server error occurred")
     } finally {
       setLoading(false)
     }
   }
 
+  /* =========================================================
+     DERIVED METRICS
+  ========================================================= */
+
+  const growthRate = useMemo(() => {
+    if (dailyUsers.length < 2) return 0
+    const last = dailyUsers[dailyUsers.length - 1].value
+    const prev = dailyUsers[dailyUsers.length - 2].value
+    if (!prev) return 0
+    return (((last - prev) / prev) * 100).toFixed(1)
+  }, [dailyUsers])
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
     <div className="space-y-10">
 
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <h2 className="text-3xl font-bold">Dashboard Overview</h2>
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 
-        <div className="flex items-center gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Sparkles className="text-primary" size={20} />
+            <h2 className="text-3xl font-bold tracking-tight">
+              Dashboard Overview
+            </h2>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Monitor platform performance and growth insights
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+
           {mounted && lastUpdated && (
-            <p className="text-xs text-neutral-500">
-              Last updated:{" "}
+            <Badge variant="secondary" className="text-xs">
+              Updated at{" "}
               {lastUpdated.toLocaleTimeString("en-US", {
                 hour: "2-digit",
                 minute: "2-digit",
-                second: "2-digit",
               })}
-            </p>
+            </Badge>
           )}
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              Auto Refresh
+            </span>
+            <Switch
+              checked={autoRefresh}
+              onCheckedChange={setAutoRefresh}
+            />
+          </div>
 
           <Button
             variant="outline"
@@ -87,7 +206,7 @@ export default function DashboardClient({
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Refreshing...
+                Refreshing
               </>
             ) : (
               <>
@@ -99,19 +218,63 @@ export default function DashboardClient({
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <StatsCard title="Total Users" value={stats.totalUsers} />
-        <StatsCard title="Active Users (24h)" value={stats.activeUsers} />
-        <StatsCard title="Total Messages" value={stats.totalMessages} />
-      </div>
+      {/* STATS SECTION */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
+        <StatsCard
+          title="Total Users"
+          value={stats.totalUsers}
+          highlight
+        />
 
-      {/* Charts */}
-      <div className="grid lg:grid-cols-2 gap-8">
-        <DailyUsersBarChart data={dailyUsers} />
-        <BookmarksLineChart data={bookmarksData} />
-      </div>
+        <StatsCard
+          title="Active Users (24h)"
+          value={stats.activeUsers}
+          subtext={`${growthRate}% growth`}
+        />
 
+        <StatsCard
+          title="Total Messages"
+          value={stats.totalMessages}
+        />
+      </motion.div>
+
+      {/* CHARTS */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+
+        <Card className="p-6 rounded-2xl shadow-sm hover:shadow-md transition">
+          <h3 className="text-lg font-semibold mb-4">
+            Daily Active Users
+          </h3>
+
+          {dailyUsers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No data available
+            </p>
+          ) : (
+            <DailyUsersBarChart data={dailyUsers} />
+          )}
+        </Card>
+
+        <Card className="p-6 rounded-2xl shadow-sm hover:shadow-md transition">
+          <h3 className="text-lg font-semibold mb-4">
+            Bookmark Growth
+          </h3>
+
+          {bookmarksData.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No data available
+            </p>
+          ) : (
+            <BookmarksLineChart data={bookmarksData} />
+          )}
+        </Card>
+
+      </div>
     </div>
   )
 }

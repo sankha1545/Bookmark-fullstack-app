@@ -41,7 +41,6 @@ export default function UserProfileClient({
   const [sortBy, setSortBy] = useState("newest")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
-
   const [visibleCount, setVisibleCount] =
     useState(ITEMS_PER_PAGE)
 
@@ -59,6 +58,7 @@ export default function UserProfileClient({
     setVisibleCount(ITEMS_PER_PAGE)
   }
 
+  /* ================= FILTER + SORT ================= */
   const filteredBookmarks = useMemo(() => {
     let data = [...safeBookmarks]
 
@@ -101,19 +101,16 @@ export default function UserProfileClient({
             new Date(b.created_at).getTime()
         )
         break
-
       case "az":
         data.sort((a, b) =>
           (a.title ?? "").localeCompare(b.title ?? "")
         )
         break
-
       case "za":
         data.sort((a, b) =>
           (b.title ?? "").localeCompare(a.title ?? "")
         )
         break
-
       default:
         data.sort(
           (a, b) =>
@@ -154,12 +151,13 @@ export default function UserProfileClient({
   const totalBookmarks = filteredBookmarks.length
 
   return (
-    <div className="flex flex-col h-full space-y-8">
+    <div className="flex flex-col h-full min-h-0 w-full space-y-6 sm:space-y-8">
 
-      {/* Profile Header */}
+      {/* ================= PROFILE HEADER ================= */}
       <Card className="border bg-background/70 backdrop-blur-xl shadow-sm">
-        <CardHeader className="flex flex-row items-center gap-6">
-          <Avatar className="h-20 w-20">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+
+          <Avatar className="h-16 w-16 sm:h-20 sm:w-20 shrink-0">
             <AvatarFallback>
               {user?.display_name
                 ? user.display_name[0]
@@ -167,17 +165,18 @@ export default function UserProfileClient({
             </AvatarFallback>
           </Avatar>
 
-          <div>
-            <CardTitle className="text-2xl">
+          <div className="min-w-0">
+            <CardTitle className="text-xl sm:text-2xl">
               {user?.display_name ?? "No Profile"}
             </CardTitle>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground break-all text-sm sm:text-base">
               {user?.email ?? "No Email"}
             </p>
           </div>
+
         </CardHeader>
 
-        <CardContent className="flex gap-6 flex-wrap items-center">
+        <CardContent className="flex flex-wrap gap-3 sm:gap-4 items-center">
           <Badge variant="secondary">
             {totalBookmarks} Filtered Bookmarks
           </Badge>
@@ -190,7 +189,7 @@ export default function UserProfileClient({
         </CardContent>
       </Card>
 
-      {/* Filters */}
+      {/* ================= FILTERS ================= */}
       <BookmarkFilters
         search={search}
         setSearch={setSearch}
@@ -202,17 +201,22 @@ export default function UserProfileClient({
         setEndDate={setEndDate}
       />
 
-      <div className="flex justify-end">
-        <Button variant="outline" onClick={clearFilters}>
+      <div className="flex justify-start sm:justify-end">
+        <Button
+          variant="outline"
+          onClick={clearFilters}
+          className="w-full sm:w-auto"
+        >
           Clear Filters
         </Button>
       </div>
 
-      {/* Scrollable Bookmark Section */}
-      <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+      {/* ================= SCROLLABLE BOOKMARK AREA ================= */}
+      {/* IMPORTANT: min-h-0 enables proper flex scroll behavior */}
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 sm:pr-2">
 
         {visibleBookmarks.length === 0 ? (
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             No bookmarks found.
           </p>
         ) : (
@@ -229,37 +233,44 @@ export default function UserProfileClient({
                 }
                 className="cursor-pointer hover:shadow-md transition border bg-background/60 backdrop-blur-lg"
               >
-                <CardContent className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-4">
+                <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4">
+
+                  <div className="flex items-start gap-3 sm:gap-4 min-w-0">
+
                     {favicon && (
                       <img
                         src={favicon}
                         alt="favicon"
-                        className="h-6 w-6 rounded-sm"
+                        className="h-5 w-5 sm:h-6 sm:w-6 rounded-sm shrink-0"
                       />
                     )}
 
-                    <div>
-                      <p className="font-medium">
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm sm:text-base truncate">
                         {bookmark?.title ?? "Untitled"}
                       </p>
-                      <p className="text-sm text-muted-foreground truncate max-w-md">
+
+                      <p className="text-xs sm:text-sm text-muted-foreground break-all">
                         {bookmark?.url ?? "No URL"}
                       </p>
                     </div>
+
                   </div>
 
-                  <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                  <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
+
                 </CardContent>
               </Card>
             )
           })
         )}
 
-        {/* Observer Trigger */}
+        {/* Infinite Scroll Trigger */}
         <div ref={observerRef} className="h-10" />
+
       </div>
 
+      {/* ================= MODAL ================= */}
       <BookmarkModal
         bookmark={selectedBookmark}
         onClose={() =>
