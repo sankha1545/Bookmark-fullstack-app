@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@supabase/supabase-js"
 import ContactsHeader from "@/src/components/contacts/ContactsHeader"
 import ContactCard from "@/src/components/contacts/ContactCard"
@@ -26,11 +26,24 @@ export type Message = {
   is_read: boolean
 }
 
-export default function ContactMessagesPage() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [loading, setLoading] = useState(true)
+interface Props {
+  initialMessages?: Message[]
+}
 
-  async function fetchMessages() {
+export default function ContactMessagesPage({
+  initialMessages,
+}: Props) {
+  const [messages, setMessages] = useState<Message[]>(
+    initialMessages ?? []
+  )
+
+  const [loading, setLoading] = useState(
+    initialMessages ? false : true
+  )
+
+  const fetchMessages = useCallback(async () => {
+    setLoading(true)
+
     const { data, error } = await supabase
       .from("contact_messages")
       .select("*")
@@ -38,14 +51,15 @@ export default function ContactMessagesPage() {
 
     if (error) {
       toast.error("Failed to load messages")
+      setLoading(false)
       return
     }
 
     setMessages(data ?? [])
     setLoading(false)
-  }
+  }, [])
 
-  async function markAsRead(id: string) {
+  const markAsRead = async (id: string) => {
     const { error } = await supabase
       .from("contact_messages")
       .update({ is_read: true })
@@ -61,8 +75,11 @@ export default function ContactMessagesPage() {
   }
 
   useEffect(() => {
-    fetchMessages()
-  }, [])
+    // Only fetch if no initialMessages (production mode)
+    if (!initialMessages) {
+      fetchMessages()
+    }
+  }, [initialMessages, fetchMessages])
 
   if (loading) return <LoadingState />
 

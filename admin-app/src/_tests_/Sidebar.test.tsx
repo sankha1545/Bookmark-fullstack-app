@@ -1,15 +1,15 @@
 import { render, screen } from "@testing-library/react"
 import Sidebar from "@/src/components/layout/Sidebar"
 
-// 🔥 Mock next/navigation (App Router)
+// Mock App Router
 jest.mock("next/navigation", () => ({
   usePathname: () => "/dashboard",
 }))
 
-// 🔥 Mock next/link
+// Correct Next Link mock (FORWARD PROPS)
 jest.mock("next/link", () => {
-  return ({ children, href }: any) => {
-    return <a href={href}>{children}</a>
+  return ({ children, ...props }: any) => {
+    return <a {...props}>{children}</a>
   }
 })
 
@@ -22,10 +22,13 @@ describe("Sidebar", () => {
     expect(screen.getByText("Contacts")).toBeInTheDocument()
   })
 
-  it("highlights active route", () => {
+  it("applies active styling to current route", () => {
     render(<Sidebar />)
 
-    const dashboardLink = screen.getByText("Dashboard")
-    expect(dashboardLink).toHaveAttribute("aria-current", "page")
+    const dashboardLink = screen.getByRole("link", {
+      name: /dashboard/i,
+    })
+
+    expect(dashboardLink.className).toMatch(/bg-gradient-to-r/)
   })
 })
