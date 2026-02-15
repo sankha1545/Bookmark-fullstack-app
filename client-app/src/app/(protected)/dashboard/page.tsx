@@ -55,22 +55,33 @@ export default function DashboardPage() {
     const channel = new BroadcastChannel("bookmarks")
     channelRef.current = channel
 
-    channel.onmessage = (event) => {
-      const { type, payload } = event.data
+   channel.onmessage = (event) => {
+  const { type, payload } = event.data
 
-      if (type === "BOOKMARK_CREATED") {
-        setBookmarks((prev) => {
-          if (prev.find((b) => b.id === payload.id)) return prev
-          return [payload, ...prev]
-        })
-      }
-
-      if (type === "BOOKMARK_DELETED") {
-        setBookmarks((prev) =>
-          prev.filter((b) => b.id !== payload.id)
-        )
-      }
+  if (type === "BOOKMARK_CREATED") {
+    const normalized: Bookmark = {
+      id: payload.id,
+      title: payload.title,
+      url: payload.url,
+      tags: payload.tags ?? undefined,
+      note: payload.note ?? undefined,
+      favourite: payload.favourite ?? false,
+      created_at: payload.created_at,
     }
+
+    setBookmarks((prev) => {
+      if (prev.find((b) => b.id === normalized.id)) return prev
+      return [normalized, ...prev]
+    })
+  }
+
+  if (type === "BOOKMARK_DELETED") {
+    setBookmarks((prev) =>
+      prev.filter((b) => b.id !== payload.id)
+    )
+  }
+}
+
 
     return () => channel.close()
   }, [])
