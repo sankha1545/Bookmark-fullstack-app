@@ -19,7 +19,7 @@ export default function EditBookmarkDrawer({
 }: Props) {
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
-//   const [tags, setTags] = useState("")
+  const [tags, setTags] = useState("") // ✅ FIXED: restored
   const [note, setNote] = useState("")
   const [description, setDescription] = useState("")
   const [loading, setLoading] = useState(false)
@@ -32,7 +32,7 @@ export default function EditBookmarkDrawer({
     if (bookmark) {
       setTitle(bookmark.title || "")
       setUrl(bookmark.url || "")
-    //   setTags(bookmark.tags?.join(", ") || "")
+      setTags(bookmark.tags?.join(", ") || "") // ✅ restored
       setNote(bookmark.note || "")
       setDescription(bookmark.description || "")
     }
@@ -42,91 +42,91 @@ export default function EditBookmarkDrawer({
      UPDATE BOOKMARK
   ================================= */
 
-async function handleUpdate() {
-  if (!bookmark?.id) return
+  async function handleUpdate() {
+    if (!bookmark?.id) return
 
-  setLoading(true)
+    setLoading(true)
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  if (!user) {
-    alert("User not authenticated")
-    setLoading(false)
-    return
-  }
-
-  try {
-    const cleanedTags = tags
-      ? tags
-          .split(",")
-          .map((t) => t.trim().toLowerCase())
-          .filter(Boolean)
-      : []
-
-    /* 1️⃣ Update bookmark */
-    const { error: bookmarkError } = await supabase
-      .from("bookmarks")
-      .update({
-        title,
-        url,
-        note,
-        description,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", bookmark.id)
-      .eq("user_id", user.id)
-
-    if (bookmarkError) throw bookmarkError
-
-    /* 2️⃣ Delete old relations */
-    const { error: deleteError } = await supabase
-      .from("bookmark_tags")
-      .delete()
-      .eq("bookmark_id", bookmark.id)
-
-    if (deleteError) throw deleteError
-
-    /* 3️⃣ Insert tags + relations */
-    if (cleanedTags.length > 0) {
-      for (const tagName of cleanedTags) {
-        // Upsert tag (avoids duplicates)
-        const { data: tagData, error: tagError } = await supabase
-          .from("tags")
-          .upsert(
-            { name: tagName }, 
-            { onConflict: "name" }
-          )
-          .select()
-          .single()
-
-        if (tagError) throw tagError
-
-        // Insert relation
-        const { error: relationError } = await supabase
-          .from("bookmark_tags")
-          .insert({
-            bookmark_id: bookmark.id,
-            tag_id: tagData.id,
-          })
-
-        if (relationError) throw relationError
-      }
+    if (!user) {
+      alert("User not authenticated")
+      setLoading(false)
+      return
     }
 
-    onSuccess()
-    onClose()
+    try {
+      // ✅ Clean tags safely
+      const cleanedTags =
+        tags.trim().length > 0
+          ? tags
+              .split(",")
+              .map((t) => t.trim().toLowerCase())
+              .filter(Boolean)
+          : []
 
-  } catch (err) {
-    console.error("Update failed:", err)
-    alert("Failed to update bookmark")
-  } finally {
-    setLoading(false)
+      /* 1️⃣ Update bookmark */
+      const { error: bookmarkError } = await supabase
+        .from("bookmarks")
+        .update({
+          title,
+          url,
+          note,
+          description,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", bookmark.id)
+        .eq("user_id", user.id)
+
+      if (bookmarkError) throw bookmarkError
+
+      /* 2️⃣ Delete old relations */
+      const { error: deleteError } = await supabase
+        .from("bookmark_tags")
+        .delete()
+        .eq("bookmark_id", bookmark.id)
+
+      if (deleteError) throw deleteError
+
+      /* 3️⃣ Insert tags + relations */
+      if (cleanedTags.length > 0) {
+        for (const tagName of cleanedTags) {
+          // Upsert tag (avoids duplicates)
+          const { data: tagData, error: tagError } = await supabase
+            .from("tags")
+            .upsert(
+              { name: tagName },
+              { onConflict: "name" }
+            )
+            .select()
+            .single()
+
+          if (tagError) throw tagError
+
+          // Insert relation
+          const { error: relationError } = await supabase
+            .from("bookmark_tags")
+            .insert({
+              bookmark_id: bookmark.id,
+              tag_id: tagData.id,
+            })
+
+          if (relationError) throw relationError
+        }
+      }
+
+      onSuccess()
+      onClose()
+
+    } catch (err) {
+      console.error("Update failed:", err)
+      alert("Failed to update bookmark")
+    } finally {
+      setLoading(false)
+    }
   }
-}
-
-
 
   /* ================================
      UI
@@ -174,15 +174,16 @@ async function handleUpdate() {
           </div>
 
           {/* Tags */}
-          {/* <div>
+          <div>
             <label className="text-sm font-medium">
               Tags (comma separated)
             </label>
             <Input
               value={tags}
               onChange={(e) => setTags(e.target.value)}
+              placeholder="react, nextjs, productivity"
             />
-          </div> */}
+          </div>
 
           {/* Note */}
           <div>
