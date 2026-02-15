@@ -116,36 +116,137 @@ Reusable Chart & UI Components
 ```
 admin-app/
 │
+├── __mocks__/
+│
+├── supabase.ts
+│
+├── .next/
+├── .swc/
+│
+├── lib/
+│   ├── utils.ts
+│
+├── node_modules/
+├── public/
+│
+├── scripts/
+│
+├── create-admin.ts
+│
 ├── src/
+│   │
+│   ├── __tests__/
+│   │   ├── AdminShell.test.tsx
+│   │   ├── ContactCard.test.tsx
+│   │   ├── ContactsPage.test.tsx
+│   │   ├── Sidebar.test.tsx
+│   │   ├── UserProfileClient.test.tsx
+│   │   ├── UsersClient.test.tsx
+│   │   ├── UsersFilters.test.tsx
+│   │
 │   ├── app/
-│   │   ├── (protected)/
-│   │   │   └── dashboard/
+│   │   ├── (auth)/
+│   │   │   └── login/
 │   │   │       └── page.tsx
+│   │   │
+│   │   ├── (protected)/
+│   │   │   ├── contacts/
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── dashboard/
+│   │   │   │   ├── layout.tsx
+│   │   │   │   └── page.tsx
+│   │   │   │
+│   │   │   ├── users/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   ├── BookmarkFilters.tsx
+│   │   │   │   │   ├── BookmarkModal.tsx
+│   │   │   │   │   ├── page.tsx
+│   │   │   │   │   └── UserProfileClient.tsx
+│   │   │   │   │
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── UsersClient.tsx
+│   │   │   │   ├── UsersFilters.tsx
+│   │   │   │   └── UsersPagination.tsx
+│   │   │   │
+│   │   │   └── layout.tsx
+│   │   │
 │   │   ├── api/
-│   │   │   └── admin/
-│   │   │       └── analytics/
-│   │   │           └── route.ts
-│   │   └── layout.tsx
+│   │   │   └── (invisible in screenshot but folder present)
+│   │   │
+│   │   ├── favicon.ico
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
 │   │
 │   ├── components/
-│   │   ├── dashboard/
-│   │   │   └── DashboardClient.tsx
 │   │   ├── analytics/
-│   │   │   ├── StatsCard.tsx
+│   │   │   ├── BookmarkLineChart.tsx
 │   │   │   ├── DailyUsersBarChart.tsx
-│   │   │   └── BookmarksLineChart.tsx
-│   │   └── ui/
+│   │   │   ├── MessagesBarChart.tsx
+│   │   │   └── StatsCard.tsx
+│   │   │
+│   │   ├── contacts/
+│   │   │   ├── ContactCard.tsx
+│   │   │   ├── ContactHeader.tsx
+│   │   │   ├── EmptyState.tsx
+│   │   │   └── LoadingState.tsx
+│   │   │
+│   │   ├── dashboard/
+│   │   │   ├── DashboardClient.tsx
+│   │   │
+│   │   ├── layout/
+│   │   │   ├── AdminShell.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   └── Topbar.tsx
+│   │   │
+│   │   ├── ui/
+│   │   │   ├── avatar.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── separator.tsx
+│   │   │   └── switch.tsx
+│   │   │
+│   │   ├── users/
+│   │   │   ├── DeleteUserModal.tsx
+│   │   │   ├── UserCard.tsx
+│   │   │   └── UserTable.tsx
+│   │
+│   ├── hooks/
+│   │   └── useAdmin.ts
 │   │
 │   ├── lib/
-│   │   └── analytics.ts
+│   │   ├── auth/
+│   │   ├── supabase/
+│   │   ├── analytics.ts
+│   │   ├── date.ts
+│   │   ├── utils.ts
 │   │
-│   └── styles/
+│   ├── types/
+│   │   ├── contacts.ts
+│   │   ├── users.ts
+│   │
+│   ├── proxy.ts
 │
-├── public/
-├── proxy.ts
-├── tsconfig.json
+├── .env.local
+├── .gitignore
+├── components.json
+├── eslint.config.mjs
+├── jest.config.ts
+├── jest.setup.ts
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
 ├── package.json
-└── README.md
+├── postcss.config.mjs
+├── README.md
+├── tsconfig.json
+
 ```
 
 ---
@@ -155,8 +256,14 @@ admin-app/
 Create a `.env.local` file:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+ADMIN_EMAIL=
+ADMIN_PASSWORD=
+SUPABASE_SERVICE_ROLE_KEY=
+ADMIN_JWT_SECRET=
+
 ```
 
 ⚠️ The service role key is server-only and must never be exposed to the client.
@@ -298,6 +405,12 @@ Designed and implemented with a focus on:
 - Security
 - Performance
 - Professional SaaS UX
+
+**Sankha Subhra Das**  
+Full Stack Developer  
+Next.js • Supabase • TypeScript • SaaS Architecture
+
+**Portfolio** : https://www.sankhasubhradasportfolio.in/
 
 ---
 

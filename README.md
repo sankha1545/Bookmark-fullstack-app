@@ -1,4 +1,4 @@
- 🚀 Smart Bookmark – Fullstack SaaS Platform
+# 🚀 Smart Bookmark – Fullstack SaaS Platform
 
 Smart Bookmark is a **production-grade, SaaS-style bookmark management platform** built with modern full-stack architecture.
 
@@ -221,10 +221,11 @@ This platform is built with:
 
 # 👨‍💻 Author
 
-**Akash**  
+**Sankha Subhra Das**  
 Full Stack Developer  
 Next.js • Supabase • TypeScript • SaaS Architecture
 
+**Portfolio** : https://www.sankhasubhradasportfolio.in/
 ---
 
 # 📜 License
