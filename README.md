@@ -11,6 +11,19 @@ This monorepo contains:
 Designed with scalability, security, and enterprise-level architecture in mind.
 
 ---
+## 📸 Gallery
+
+### Hero
+![Hero](./assets/landingpage.png)
+
+### Security
+![Security](./assets/landingpage2.png)
+
+### CTA
+![CTA](./assets/landingpage3.png)
+
+### About
+![About](./assets/landingpage3.png)
 
 # 🌍 Live Architecture Overview
 
@@ -25,15 +38,15 @@ Smart Bookmark follows a **multi-application SaaS architecture**:
      ┌──────────────────────────────┼──────────────────────────────┐
      │                              │                              │
      │                              │                              │
-┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
-│   Client App      │ │    Admin App      │ │    API Routes     │
-│  (Next.js 16)     │ │  (Next.js 16)     │ │  (Server-side)    │
-│                   │ │                   │ │                   │
-│ - Bookmark CRUD   │ │ - User Management │ │ - Analytics       │
-│ - Realtime Sync   │ │ - Dashboard Stats │ │ - Secure Queries  │
-│ - Google OAuth    │ │ - Contact Mgmt    │ │ - Role Control    │
-│ - Analytics       │ │ - System Insights │ │                   │
-└───────────────────┘ └───────────────────┘ └───────────────────┘
+┌───────────────────┐     ┌───────────────────┐           ┌───────────────────┐
+│   Client App      │     │    Admin App      │           │    API Routes     │
+│  (Next.js 16)     │     │  (Next.js 16)     │           │  (Server-side)    │
+│                   │     │                   │           │                   │
+│ - Bookmark CRUD   │     │ - User Management │           │ - Analytics       │
+│ - Realtime Sync   │     │ - Dashboard Stats │           │ - Secure Queries  │
+│ - Google OAuth    │     │ - Contact Mgmt    │           │ - Role Control    │
+│ - Analytics       │     │ - System Insights │           │                   │
+└───────────────────┘     └───────────────────┘           └───────────────────┘
 ```
 
 ---

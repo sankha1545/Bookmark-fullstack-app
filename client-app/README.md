@@ -338,16 +338,19 @@ Smart Bookmark implements:
 Add screenshots inside a `/public/screenshots` folder and reference them like below.
 
 ### 🔐 Login Page
-![Login Screenshot](./public/screenshots/login.png)
+![](./public/login.png)
 
 ### 📊 Dashboard Overview
-![Dashboard Screenshot](./public/screenshots/dashboard.png)
+![Dashboard Screenshot](./public/user-dashboard,png)
 
 ### 🔖 Bookmark Management
-![Bookmarks Screenshot](./public/screenshots/bookmarks.png)
+![Bookmarks Screenshot](./public/user-addbookmakmodal.png)
 
 ### 📱 Responsive View
-![Mobile Screenshot](./public/screenshots/mobile.png)
+![Settings](./public/user-settings.png)
+
+### Edit Form View
+![Settings](./public/user-editform.png)
 
 ---
 
