@@ -6,6 +6,7 @@ This monorepo contains:
 
 - 🧑‍💻 **Client Application** – End-user bookmark dashboard [https://bookmarkclient.vercel.app/]
 - 🛡️ **Admin Application** – Master admin control panel [https://bookmark-fullstack-app-black.vercel.app/]
+   
 - ☁️ Supabase backend (Auth + Database + Realtime)
 
 Designed with scalability, security, and enterprise-level architecture in mind.

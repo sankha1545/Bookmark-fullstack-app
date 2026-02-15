@@ -232,11 +232,11 @@ export default function DashboardClient({
           highlight
         />
 
-        <StatsCard
+        {/* <StatsCard
           title="Active Users (24h)"
           value={stats.activeUsers}
           subtext={`${growthRate}% growth`}
-        />
+        /> */}
 
         <StatsCard
           title="Total Messages"
