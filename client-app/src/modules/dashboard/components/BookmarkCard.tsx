@@ -4,16 +4,8 @@ import { Star, Pencil, Trash2, ExternalLink, Calendar, Globe } from "lucide-reac
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
 import { useMemo, useState } from "react"
+import { Bookmark } from "@/types/bookmark"
 
-type Bookmark = {
-  id: string
-  title: string
-  url: string
-  tags?: string[]
-  note?: string
-  favourite: boolean
-  created_at: string
-}
 
 type Props = {
   bookmark: Bookmark

@@ -22,16 +22,9 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select"
+import { Bookmark } from "@/types/bookmark"
 
-type Bookmark = {
-  id: string
-  title: string
-  url: string
-  tags?: string[]
-  note?: string
-  favourite?: boolean
-  created_at: string
-}
+
 
 const ITEMS_PER_PAGE = 6
 
@@ -92,9 +85,15 @@ export default function DashboardPage() {
       .select("*")
       .order("created_at", { ascending: false })
 
-    if (!error) {
-      setBookmarks(data || [])
-    }
+  if (!error && data) {
+  setBookmarks(
+    data.map((b) => ({
+      ...b,
+      favourite: b.favourite ?? false,
+    }))
+  )
+}
+
 
     setLoading(false)
   }
