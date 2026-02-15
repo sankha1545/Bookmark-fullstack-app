@@ -430,12 +430,12 @@ export default function DashboardPage() {
               )}
 
               {viewMode === "moodboard" && (
-                <BookmarkMoodboardView
-                  bookmarks={paginatedBookmarks}
-                  onEdit={(b) => setEditing(b)}
-                  onDelete={(b) => setDeleting(b)}
-                  onToggleFavourite={toggleFavourite}
-                />
+               <BookmarkMoodboardView
+  bookmarks={paginatedBookmarks}
+  onEdit={(b) => setEditing(b)}
+  onDelete={(b) => setDeleting(b)}
+/>
+
               )}
 
             </motion.div>
