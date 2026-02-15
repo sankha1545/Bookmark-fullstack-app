@@ -9,7 +9,7 @@ import BookmarkListView from "@/modules/dashboard/components/BookmarkListView"
 import BookmarkHeadlineView from "@/modules/dashboard/components/BookmarkHeadlineView"
 import BookmarkMoodboardView from "@/modules/dashboard/components/BookmarkMoodboardView"
 
-import AddBookmarkModal from "@/modules/dashboard/components/AddBookmarModal"
+import AddBookmarkModal from "@/modules/dashboard/components/AddBookmarkModal"
 import EditBookmarkDrawer from "@/modules/dashboard/components/EditBookmarkDrawer"
 import DeleteConfirmModal from "@/modules/dashboard/components/DeleteBookmarkModal"
 
