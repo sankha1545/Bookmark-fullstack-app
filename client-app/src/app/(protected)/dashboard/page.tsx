@@ -107,33 +107,44 @@ export default function DashboardPage() {
   /* ==============================
      CREATE
   ============================== */
-  async function createBookmark(title: string, url: string) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+ async function createBookmark(title: string, url: string) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-    if (!user) return
+  if (!user) return
 
-    const { data } = await supabase
-      .from("bookmarks")
-      .insert({ title, url, user_id: user.id })
-      .select()
-      .single()
+  const { data } = await supabase
+    .from("bookmarks")
+    .insert({ title, url, user_id: user.id })
+    .select()
+    .single()
 
-    if (!data) return
+  if (!data) return
 
-    setBookmarks((prev) => {
-      if (prev.find((b) => b.id === data.id)) return prev
-      return [data, ...prev]
-    })
-
-    channelRef.current?.postMessage({
-      type: "BOOKMARK_CREATED",
-      payload: data,
-    })
-
-    setCurrentPage(1)
+  const normalized: Bookmark = {
+    id: data.id,
+    title: data.title,
+    url: data.url,
+    tags: data.tags ?? undefined,
+    note: data.note ?? undefined,
+    favourite: data.favourite ?? false,  // 🔥 CRITICAL
+    created_at: data.created_at,
   }
+
+  setBookmarks((prev) => {
+    if (prev.find((b) => b.id === normalized.id)) return prev
+    return [normalized, ...prev]
+  })
+
+  channelRef.current?.postMessage({
+    type: "BOOKMARK_CREATED",
+    payload: normalized,
+  })
+
+  setCurrentPage(1)
+}
+
 
   /* ==============================
      DELETE
