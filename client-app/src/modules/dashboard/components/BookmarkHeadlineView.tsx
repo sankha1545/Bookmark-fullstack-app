@@ -5,15 +5,9 @@ import { motion } from "framer-motion"
 import { Calendar, Eye, Pencil, Trash2, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
+import { Bookmark } from "@/types/bookmark"
 
-type Bookmark = {
-  id: string
-  title: string
-  url: string
-  created_at?: string
-  tags?: string[]
-  note?: string
-}
+
 
 type Props = {
   bookmarks: Bookmark[]

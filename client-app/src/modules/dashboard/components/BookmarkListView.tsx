@@ -13,16 +13,9 @@ import {
 import { format } from "date-fns"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import { Bookmark } from "@/types/bookmark"
 
-type Bookmark = {
-  id: string
-  title: string
-  url: string
-  tags?: string[]
-  note?: string
-  favourite: boolean
-  created_at: string
-}
+
 
 type Props = {
   bookmarks: Bookmark[]
