@@ -16,7 +16,11 @@ const supabaseAdmin = createClient(
    🧮 DASHBOARD STATS
 ====================================================== */
 
-export async function getDashboardStats() {
+export async function getDashboardStats(): Promise<{
+  totalUsers: number
+  activeUsers: number
+  totalMessages: number
+}> {
   const { data, error } = await supabaseAdmin.auth.admin.listUsers()
 
   if (error) console.error("User fetch error:", error)
@@ -47,7 +51,9 @@ export async function getDashboardStats() {
    📊 DAILY USER REGISTRATIONS (ISO SAFE)
 ====================================================== */
 
-export async function getDailyUsers() {
+export async function getDailyUsers(): Promise<
+  { date: string; value: number }[]
+> {
   const { data } = await supabaseAdmin.auth.admin.listUsers()
   const users = data?.users ?? []
 
@@ -56,20 +62,19 @@ export async function getDailyUsers() {
   users.forEach((user) => {
     if (!user.created_at) return
 
-    // ✅ ISO DATE (stable)
-    const date = new Date(user.created_at).toISOString().split("T")[0]
+    const date = new Date(user.created_at)
+      .toISOString()
+      .split("T")[0]
 
     grouped[date] = (grouped[date] || 0) + 1
   })
 
- return Object.entries(grouped)
-  .sort(([a], [b]) => a.localeCompare(b))
-  .map(([date, count]) => ({
-    date,
-    value: count,
-  }))
-
-
+  return Object.entries(grouped)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, count]) => ({
+      date,
+      value: count, // ✅ unified chart shape
+    }))
 }
 
 /* ======================================================
@@ -83,14 +88,15 @@ export async function getBookmarksAnalytics(
   }: {
     type?: "daily" | "monthly" | "yearly"
     range?: number
-  } = {} // ✅ THIS FIXES THE ERROR
-)
- {
-  let query = supabaseAdmin.from("bookmarks").select("created_at")
+  } = {}
+): Promise<{ date: string; value: number }[]> {
+  let query = supabaseAdmin
+    .from("bookmarks")
+    .select("created_at")
 
   const now = new Date()
 
-  // 🔥 Daily Range Filter
+  /* 🔥 Daily Range Filter */
   if (type === "daily") {
     const startDate = new Date()
     startDate.setDate(now.getDate() - range)
@@ -102,10 +108,10 @@ export async function getBookmarksAnalytics(
 
   const grouped: Record<string, number> = {}
 
-  data?.forEach((b) => {
-    if (!b.created_at) return
+  data?.forEach((bookmark) => {
+    if (!bookmark.created_at) return
 
-    const dateObj = new Date(b.created_at)
+    const dateObj = new Date(bookmark.created_at)
 
     let key = ""
 
@@ -130,6 +136,6 @@ export async function getBookmarksAnalytics(
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, count]) => ({
       date,
-      bookmarks: count,
+      value: count, // ✅ FIXED (previously bookmarks: count)
     }))
 }
