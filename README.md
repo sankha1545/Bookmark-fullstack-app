@@ -148,7 +148,7 @@ Admin → Admin App → Secure API Route → Supabase Service Role
 Clone repository:
 
 ```bash
-git clone https://github.com/your-username/Bookmark-fullstack-app.git
+git clone https://github.com/sankha1545/Bookmark-fullstack-app.git
 cd Bookmark-fullstack-app
 ```
 
