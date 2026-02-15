@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import {
   BarChart,
   Bar,
@@ -12,7 +13,7 @@ import {
 
 type ChartData = {
   date: string
-  users: number
+  value: number   // ✅ match analytics.ts
 }
 
 type Props = {
@@ -20,19 +21,34 @@ type Props = {
 }
 
 export default function DailyUsersBarChart({ data }: Props) {
+
   /* =====================================
-     FORMAT DATE FOR X-AXIS
+     SAFE NORMALIZATION
+  ===================================== */
+  const safeData = useMemo(() => {
+    if (!Array.isArray(data)) return []
+
+    return data
+      .map((d) => ({
+        date: d.date,
+        value: Number(d.value) || 0,
+      }))
+      .filter((d) => !!d.date)
+      .sort((a, b) => a.date.localeCompare(b.date))
+  }, [data])
+
+  /* =====================================
+     PROFESSIONAL DATE FORMAT
   ===================================== */
   const formatXAxis = (value: string) => {
     const d = new Date(value)
     if (isNaN(d.getTime())) return value
-    return `${d.getDate()}/${d.getMonth() + 1}`
-  }
 
-  /* =====================================
-     EMPTY STATE SAFETY
-  ===================================== */
-  const safeData = Array.isArray(data) ? data : []
+    return d.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+    }) // 13 Feb
+  }
 
   return (
     <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm w-full space-y-4">
@@ -72,14 +88,20 @@ export default function DailyUsersBarChart({ data }: Props) {
                   fontSize: "12px",
                 }}
                 labelFormatter={(label) => formatXAxis(label)}
+                formatter={(value: any) =>
+                  Number.isFinite(Number(value))
+                    ? Number(value)
+                    : 0
+                }
               />
 
               <Bar
-                dataKey="users"
+                dataKey="value"   // ✅ FIXED HERE
                 fill="#000"
                 radius={[8, 8, 0, 0]}
                 animationDuration={400}
               />
+
             </BarChart>
           </ResponsiveContainer>
 

@@ -23,22 +23,34 @@ export async function getDashboardStats(): Promise<{
 }> {
   const { data, error } = await supabaseAdmin.auth.admin.listUsers()
 
-  if (error) console.error("User fetch error:", error)
+  if (error) {
+    console.error("User fetch error:", error)
+    return {
+      totalUsers: 0,
+      activeUsers: 0,
+      totalMessages: 0,
+    }
+  }
 
   const users = data?.users ?? []
   const totalUsers = users.length
 
-  const yesterday = new Date()
-  yesterday.setDate(yesterday.getDate() - 1)
+  // 24 hour active window (safe time calc)
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
   const activeUsers = users.filter((user) => {
     if (!user.last_sign_in_at) return false
     return new Date(user.last_sign_in_at) >= yesterday
   }).length
 
-  const { count: totalMessages } = await supabaseAdmin
-    .from("contact_messages")
-    .select("*", { count: "exact", head: true })
+  const { count: totalMessages, error: messageError } =
+    await supabaseAdmin
+      .from("contact_messages")
+      .select("*", { count: "exact", head: true })
+
+  if (messageError) {
+    console.error("Message count error:", messageError)
+  }
 
   return {
     totalUsers,
@@ -54,7 +66,14 @@ export async function getDashboardStats(): Promise<{
 export async function getDailyUsers(): Promise<
   { date: string; value: number }[]
 > {
-  const { data } = await supabaseAdmin.auth.admin.listUsers()
+  const { data, error } =
+    await supabaseAdmin.auth.admin.listUsers()
+
+  if (error) {
+    console.error("Daily users fetch error:", error)
+    return []
+  }
+
   const users = data?.users ?? []
 
   const grouped: Record<string, number> = {}
@@ -73,12 +92,12 @@ export async function getDailyUsers(): Promise<
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, count]) => ({
       date,
-      value: count, // ✅ unified chart shape
+      value: count,
     }))
 }
 
 /* ======================================================
-   📈 BOOKMARK ANALYTICS (WITH FILTER SUPPORT)
+   📈 BOOKMARK ANALYTICS (FIXED RANGE + SAFE GROUPING)
 ====================================================== */
 
 export async function getBookmarksAnalytics(
@@ -90,21 +109,31 @@ export async function getBookmarksAnalytics(
     range?: number
   } = {}
 ): Promise<{ date: string; value: number }[]> {
+
   let query = supabaseAdmin
     .from("bookmarks")
     .select("created_at")
 
-  const now = new Date()
+  const now = Date.now()
 
-  /* 🔥 Daily Range Filter */
+  /* ✅ FIXED: Stable millisecond subtraction (no timezone mutation) */
   if (type === "daily") {
-    const startDate = new Date()
-    startDate.setDate(now.getDate() - range)
+    const startDate = new Date(
+      now - range * 24 * 60 * 60 * 1000
+    )
 
-    query = query.gte("created_at", startDate.toISOString())
+    query = query.gte(
+      "created_at",
+      startDate.toISOString()
+    )
   }
 
-  const { data } = await query
+  const { data, error } = await query
+
+  if (error) {
+    console.error("Bookmark analytics error:", error)
+    return []
+  }
 
   const grouped: Record<string, number> = {}
 
@@ -112,7 +141,6 @@ export async function getBookmarksAnalytics(
     if (!bookmark.created_at) return
 
     const dateObj = new Date(bookmark.created_at)
-
     let key = ""
 
     if (type === "daily") {
@@ -129,6 +157,8 @@ export async function getBookmarksAnalytics(
       key = `${dateObj.getFullYear()}`
     }
 
+    if (!key) return
+
     grouped[key] = (grouped[key] || 0) + 1
   })
 
@@ -136,6 +166,6 @@ export async function getBookmarksAnalytics(
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, count]) => ({
       date,
-      value: count, // ✅ FIXED (previously bookmarks: count)
+      value: count,
     }))
 }

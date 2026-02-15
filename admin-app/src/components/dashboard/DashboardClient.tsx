@@ -114,7 +114,8 @@ export default function DashboardClient({
     setLoading(true)
 
     try {
-      const res = await fetch("/api/admin/analytics")
+    const res = await fetch("/api/admin/admin-dashboard")
+
       const data = await res.json()
 
       if (!res.ok) {

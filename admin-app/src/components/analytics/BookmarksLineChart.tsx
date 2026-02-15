@@ -18,7 +18,7 @@ type DailyRange = 7 | 30 | 60
 
 type ChartData = {
   date: string
-  bookmarks: number
+  value: number
 }
 
 type Props = {
@@ -29,96 +29,125 @@ export default function BookmarksLineChart({ data }: Props) {
   const [view, setView] = useState<ViewMode>("daily")
   const [dailyRange, setDailyRange] = useState<DailyRange>(7)
 
-  /* =====================================
-     FILTER + GROUPING LOGIC (UNCHANGED)
-  ===================================== */
+  /* ======================================================
+     SAFE DATA NORMALIZATION
+  ====================================================== */
+
+  const normalizedData = useMemo(() => {
+    if (!Array.isArray(data)) return []
+
+    return data
+      .map((d) => ({
+        date: d.date,
+        value: Number(d.value) || 0,
+      }))
+      .filter((d) => !!d.date)
+      .sort((a, b) => a.date.localeCompare(b.date)) // ISO-safe
+  }, [data])
+
+  /* ======================================================
+     FILTER + GROUPING
+  ====================================================== */
 
   const filteredData = useMemo(() => {
-    if (!data || data.length === 0) return []
+    if (normalizedData.length === 0) return []
 
-    const sorted = [...data].sort((a, b) =>
-      a.date.localeCompare(b.date)
-    )
+    const now = Date.now()
 
-    const now = new Date()
-
+    /* ---------- DAILY ---------- */
     if (view === "daily") {
-      const cutoff = new Date()
-      cutoff.setDate(now.getDate() - dailyRange)
+      const cutoff = new Date(
+        now - dailyRange * 24 * 60 * 60 * 1000
+      ).toISOString().split("T")[0]
 
-      return sorted.filter((item) => {
-        const d = new Date(item.date)
-        return d >= cutoff
-      })
+      return normalizedData.filter(
+        (item) => item.date >= cutoff
+      )
     }
 
+    /* ---------- MONTHLY ---------- */
     if (view === "monthly") {
       const grouped: Record<string, number> = {}
 
-      sorted.forEach((item) => {
+      normalizedData.forEach((item) => {
         const d = new Date(item.date)
         const key = `${d.getFullYear()}-${String(
           d.getMonth() + 1
         ).padStart(2, "0")}`
 
-        grouped[key] = (grouped[key] || 0) + item.bookmarks
+        grouped[key] = (grouped[key] || 0) + item.value
       })
 
       return Object.entries(grouped)
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, bookmarks]) => ({
+        .map(([date, value]) => ({
           date,
-          bookmarks,
+          value,
         }))
     }
 
+    /* ---------- YEARLY ---------- */
     if (view === "yearly") {
       const grouped: Record<string, number> = {}
 
-      sorted.forEach((item) => {
-        const year = new Date(item.date).getFullYear().toString()
-        grouped[year] = (grouped[year] || 0) + item.bookmarks
+      normalizedData.forEach((item) => {
+        const year = new Date(item.date)
+          .getFullYear()
+          .toString()
+
+        grouped[year] =
+          (grouped[year] || 0) + item.value
       })
 
       return Object.entries(grouped)
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, bookmarks]) => ({
+        .map(([date, value]) => ({
           date,
-          bookmarks,
+          value,
         }))
     }
 
-    return sorted
-  }, [data, view, dailyRange])
+    return normalizedData
+  }, [normalizedData, view, dailyRange])
 
-  /* =====================================
-     X-AXIS LABEL FORMATTER
-  ===================================== */
+  /* ======================================================
+     PROFESSIONAL DATE FORMATTER
+  ====================================================== */
 
   const formatXAxis = (value: string) => {
+    if (!value) return ""
+
     if (view === "daily") {
       const d = new Date(value)
       if (isNaN(d.getTime())) return value
-      return `${d.getDate()}/${d.getMonth() + 1}`
+
+      return d.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+      }) // 13 Feb
     }
 
     if (view === "monthly") {
       const [year, month] = value.split("-")
-      return `${month}/${year.slice(2)}`
+      const date = new Date(
+        Number(year),
+        Number(month) - 1
+      )
+
+      return date.toLocaleDateString("en-IN", {
+        month: "short",
+        year: "2-digit",
+      }) // Feb 26
     }
 
     return value
   }
 
-  /* =====================================
-     RESPONSIVE HEIGHT
-  ===================================== */
-
   const chartHeight = 260
 
-  /* =====================================
+  /* ======================================================
      RENDER
-  ===================================== */
+  ====================================================== */
 
   return (
     <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm space-y-6 w-full">
@@ -129,31 +158,42 @@ export default function BookmarksLineChart({ data }: Props) {
           Bookmarks Added Over Time
         </h3>
 
-        {/* Main Filters */}
         <div className="flex gap-2 flex-wrap">
-          {(["daily", "monthly", "yearly"] as ViewMode[]).map((mode) => (
-            <Button
-              key={mode}
-              size="sm"
-              variant={view === mode ? "default" : "outline"}
-              onClick={() => setView(mode)}
-              className="capitalize"
-            >
-              {mode}
-            </Button>
-          ))}
+          {(["daily", "monthly", "yearly"] as ViewMode[]).map(
+            (mode) => (
+              <Button
+                key={mode}
+                size="sm"
+                variant={
+                  view === mode
+                    ? "default"
+                    : "outline"
+                }
+                onClick={() => setView(mode)}
+                className="capitalize"
+              >
+                {mode}
+              </Button>
+            )
+          )}
         </div>
       </div>
 
-      {/* Daily Sub Filters */}
+      {/* Daily Range Buttons */}
       {view === "daily" && (
         <div className="flex gap-2 flex-wrap">
           {[7, 30, 60].map((range) => (
             <Button
               key={range}
               size="sm"
-              variant={dailyRange === range ? "default" : "outline"}
-              onClick={() => setDailyRange(range as DailyRange)}
+              variant={
+                dailyRange === range
+                  ? "default"
+                  : "outline"
+              }
+              onClick={() =>
+                setDailyRange(range as DailyRange)
+              }
             >
               Last {range} days
             </Button>
@@ -161,14 +201,21 @@ export default function BookmarksLineChart({ data }: Props) {
         </div>
       )}
 
-      {/* Chart Wrapper (prevents overflow on small screens) */}
+      {/* Chart */}
       <div className="w-full overflow-x-auto">
         <div className="min-w-[320px] sm:min-w-0">
-
-          <ResponsiveContainer width="100%" height={chartHeight}>
+          <ResponsiveContainer
+            width="100%"
+            height={chartHeight}
+          >
             <LineChart
               data={filteredData}
-              margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+              margin={{
+                top: 10,
+                right: 20,
+                left: 0,
+                bottom: 10,
+              }}
             >
               <CartesianGrid strokeDasharray="3 3" />
 
@@ -190,12 +237,19 @@ export default function BookmarksLineChart({ data }: Props) {
                   border: "1px solid #e5e5e5",
                   fontSize: "12px",
                 }}
-                labelFormatter={(label) => formatXAxis(label)}
+                labelFormatter={(label) =>
+                  formatXAxis(label)
+                }
+                formatter={(value: any) =>
+                  Number.isFinite(Number(value))
+                    ? Number(value)
+                    : 0
+                }
               />
 
               <Line
                 type="monotone"
-                dataKey="bookmarks"
+                dataKey="value"
                 stroke="#000"
                 strokeWidth={3}
                 dot={{ r: 3 }}
@@ -203,9 +257,7 @@ export default function BookmarksLineChart({ data }: Props) {
                 animationDuration={400}
               />
             </LineChart>
-
           </ResponsiveContainer>
-
         </div>
       </div>
     </div>

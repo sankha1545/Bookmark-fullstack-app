@@ -1,8 +1,13 @@
-import { createServerSupabaseClient } from "@/src/lib/supabase/server"
+import { createClient } from "@supabase/supabase-js"
 import UsersClient from "./UsersClient"
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { persistSession: false } }
+)
+
 export default async function UsersPage() {
-  const supabase = createServerSupabaseClient()
 
   const { data: users, error } = await supabase
     .from("admin_user_overview")
@@ -14,15 +19,12 @@ export default async function UsersPage() {
   }
 
   const usersWithCounts = await Promise.all(
-    users.map(async (user) => {
-      if (!user.profile_id) {
-        return { ...user, bookmarkCount: 0 }
-      }
+    (users ?? []).map(async (user) => {
 
       const { count } = await supabase
         .from("bookmarks")
         .select("*", { count: "exact", head: true })
-        .eq("profile_id", user.profile_id)
+        .eq("user_id", user.auth_user_id) // ✅ FIXED
 
       return {
         ...user,

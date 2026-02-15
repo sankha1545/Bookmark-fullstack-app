@@ -1,24 +1,28 @@
-import { createServerSupabaseClient } from "@/src/lib/supabase/server"
+import { createClient } from "@supabase/supabase-js"
 import UserProfileClient from "./UserProfileClient"
 
 interface Props {
   params: Promise<{ id: string }>
 }
 
-export default async function UserDetailsPage({ params }: Props) {
-  const { id } = await params // ✅ FIX: unwrap params
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { persistSession: false } }
+)
 
-  const supabase = createServerSupabaseClient()
+export default async function UserDetailsPage({ params }: Props) {
+  const { id } = await params  // ✅ Required in Next 16
+
+  console.log("ROUTE ID:", id) // Debug
 
   const { data: user, error } = await supabase
     .from("admin_user_overview")
     .select("*")
     .eq("auth_user_id", id)
-    .maybeSingle()
+    .single()
 
-  if (error) {
-    console.error("User fetch error:", error)
-  }
+  console.log("USER FOUND:", user)
 
   if (!user) {
     return (
@@ -28,23 +32,19 @@ export default async function UserDetailsPage({ params }: Props) {
     )
   }
 
-  let bookmarks: any[] = []
+  const { data: bookmarkData } = await supabase
+    .from("bookmarks")
+    .select("*")
+    .eq("user_id", id)
+    .order("created_at", { ascending: false })
 
-  if (user.profile_id) {
-    const { data: bookmarkData } = await supabase
-      .from("bookmarks")
-      .select("*")
-      .eq("profile_id", user.profile_id)
-      .order("created_at", { ascending: false })
-
-    bookmarks = bookmarkData ?? []
-  }
+  console.log("BOOKMARKS:", bookmarkData)
 
   return (
     <div className="p-8">
       <UserProfileClient
         user={user}
-        bookmarks={bookmarks}
+        bookmarks={bookmarkData ?? []}
       />
     </div>
   )
