@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
+  const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
 
   if (!code) {
-    return NextResponse.redirect(new URL("/login", request.url))
+    return NextResponse.redirect(`${origin}/login`)
   }
 
-  // ✅ IMPORTANT: await cookies() in Next 16
-  const cookieStore = await cookies()
+  const response = NextResponse.redirect(`${origin}/dashboard`)
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,13 +17,25 @@ export async function GET(request: Request) {
     {
       cookies: {
         get(name: string) {
-          return cookieStore.get(name)?.value
+          return request.headers
+            .get("cookie")
+            ?.split("; ")
+            .find((c) => c.startsWith(name + "="))
+            ?.split("=")[1]
         },
         set(name: string, value: string, options: any) {
-          cookieStore.set({ name, value, ...options })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
         },
         remove(name: string, options: any) {
-          cookieStore.set({ name, value: "", ...options })
+          response.cookies.set({
+            name,
+            value: "",
+            ...options,
+          })
         },
       },
     }
@@ -35,8 +45,8 @@ export async function GET(request: Request) {
 
   if (error) {
     console.error("OAuth exchange error:", error)
-    return NextResponse.redirect(new URL("/login", request.url))
+    return NextResponse.redirect(`${origin}/login`)
   }
 
-  return NextResponse.redirect(new URL("/dashboard", request.url))
+  return response
 }

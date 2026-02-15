@@ -3,25 +3,32 @@
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase/client"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { FcGoogle } from "react-icons/fc"
 
 export function GoogleLoginButton() {
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
   async function handleLogin() {
-    setLoading(true)
+    try {
+      setLoading(true)
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            prompt: "select_account",      // ✅ FORCE ACCOUNT PICKER
+            access_type: "offline",
+          },
+        },
+      })
 
-    if (error) {
-      console.error("OAuth error:", error.message)
+      if (error) {
+        console.error("OAuth error:", error.message)
+        setLoading(false)
+      }
+    } catch (err) {
+      console.error("Unexpected OAuth error:", err)
       setLoading(false)
     }
   }
