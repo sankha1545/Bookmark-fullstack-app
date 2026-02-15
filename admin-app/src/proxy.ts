@@ -4,17 +4,18 @@ import { jwtVerify } from "jose"
 
 const secret = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET!)
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const token = req.cookies.get("admin_session")?.value
 
   const isAuthPage = req.nextUrl.pathname.startsWith("/login")
+
   const isProtectedRoute =
     req.nextUrl.pathname.startsWith("/dashboard") ||
     req.nextUrl.pathname.startsWith("/users") ||
     req.nextUrl.pathname.startsWith("/contacts") ||
     req.nextUrl.pathname.startsWith("/analytics")
 
-  // If accessing protected route
+  // 🔒 Protect secure routes
   if (isProtectedRoute) {
     if (!token) {
       return NextResponse.redirect(new URL("/login", req.url))
@@ -28,7 +29,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // If logged in and trying to access login page
+  // 🔁 Prevent logged-in admin from accessing login page
   if (isAuthPage && token) {
     try {
       await jwtVerify(token, secret)
@@ -42,5 +43,11 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/users/:path*", "/contacts/:path*", "/analytics/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/login",
+    "/users/:path*",
+    "/contacts/:path*",
+    "/analytics/:path*",
+  ],
 }
