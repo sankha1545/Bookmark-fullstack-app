@@ -89,7 +89,9 @@ export default function DashboardPage() {
   setBookmarks(
     data.map((b) => ({
       ...b,
-      favourite: b.favourite ?? false,
+       favourite: b.favourite ?? false,
+      tags: b.tags ?? undefined,
+      note: b.note ?? undefined,
     }))
   )
 }
