@@ -53,7 +53,7 @@ export default async function DashboardLayout({
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* TOPBAR */}
-        <Topbar user={user} />
+        <Topbar />
 
         {/* PAGE CONTENT */}
         <main
