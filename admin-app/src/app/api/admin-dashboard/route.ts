@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import {
   getDashboardStats,
   getDailyUsers,
-} from "@/lib/analytics"
+} from "@/src/lib/analytics"
 
 export async function GET() {
   const stats = await getDashboardStats()
