@@ -23,7 +23,7 @@ Designed with scalability, security, and enterprise-level architecture in mind.
 ![CTA](./assets/landingpage3.png)
 
 ### About
-![About](./assets/landingpage3.png)
+![About](./assets/landingpage4.png)
 
 # 🌍 Live Architecture Overview
 

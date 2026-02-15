@@ -1,5 +1,7 @@
  # 🚀 Smart Bookmark — Admin Portal
 
+[Live Demo](https://bookmark-fullstack-app-black.vercel.app/login)
+
 A secure, production-grade Admin Dashboard for the **Smart Bookmark SaaS Platform**.
 
 This application enables master administrators to monitor platform activity, manage users, view analytics, and oversee system-level operations.

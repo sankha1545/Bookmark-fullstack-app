@@ -341,10 +341,10 @@ Add screenshots inside a `/public/screenshots` folder and reference them like be
 ![](./public/login.png)
 
 ### 📊 Dashboard Overview
-![Dashboard Screenshot](./public/user-dashboard,png)
+![Dashboard Screenshot](./public/user-dashboard.png)
 
 ### 🔖 Bookmark Management
-![Bookmarks Screenshot](./public/user-addbookmakmodal.png)
+![Bookmarks Screenshot](./public/user-addbookmarkmodal.png)
 
 ### 📱 Responsive View
 ![Settings](./public/user-settings.png)
