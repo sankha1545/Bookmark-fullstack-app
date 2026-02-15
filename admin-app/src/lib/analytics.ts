@@ -62,12 +62,14 @@ export async function getDailyUsers() {
     grouped[date] = (grouped[date] || 0) + 1
   })
 
-  return Object.entries(grouped)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, count]) => ({
-      date,
-      users: count,
-    }))
+ return Object.entries(grouped)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([date, count]) => ({
+    date,
+    value: count,
+  }))
+
+
 }
 
 /* ======================================================
