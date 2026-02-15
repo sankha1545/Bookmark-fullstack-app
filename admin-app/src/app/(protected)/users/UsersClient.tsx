@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -18,6 +18,10 @@ import { Badge } from "@/src/components/ui/badge"
 import UsersFilters from "./UsersFilters"
 import UsersPagination from "./UsersPagination"
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 interface User {
   auth_user_id: string
   profile_id: string | null
@@ -33,16 +37,23 @@ interface Props {
 
 const USERS_PER_PAGE = 9
 
-export default function UsersClient({ initialUsers }: Props) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [sortBy, setSortBy] = useState("newest")
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [direction, setDirection] = useState(0)
+/* =========================================================
+   COMPONENT
+========================================================= */
 
-  /* ================= FILTER + SORT ================= */
-  const filteredUsers = useMemo(() => {
+export default function UsersClient({ initialUsers }: Props) {
+  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [sortBy, setSortBy] = useState<string>("newest")
+  const [startDate, setStartDate] = useState<string>("")
+  const [endDate, setEndDate] = useState<string>("")
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [direction, setDirection] = useState<number>(0)
+
+  /* =========================================================
+     FILTER + SORT
+  ========================================================= */
+
+  const filteredUsers = useMemo<User[]>(() => {
     let users = [...initialUsers]
     const search = searchQuery.trim().toLowerCase()
 
@@ -91,13 +102,31 @@ export default function UsersClient({ initialUsers }: Props) {
     return users
   }, [initialUsers, searchQuery, sortBy, startDate, endDate])
 
-  /* ================= PAGINATION ================= */
-  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE)
+  /* =========================================================
+     RESET PAGE WHEN FILTERS CHANGE
+  ========================================================= */
 
-  const paginatedUsers = useMemo(() => {
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, sortBy, startDate, endDate])
+
+  /* =========================================================
+     PAGINATION
+  ========================================================= */
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredUsers.length / USERS_PER_PAGE)
+  )
+
+  const paginatedUsers = useMemo<User[]>(() => {
     const start = (currentPage - 1) * USERS_PER_PAGE
     return filteredUsers.slice(start, start + USERS_PER_PAGE)
   }, [filteredUsers, currentPage])
+
+  /* =========================================================
+     HANDLERS
+  ========================================================= */
 
   const handleClear = () => {
     setSearchQuery("")
@@ -107,10 +136,26 @@ export default function UsersClient({ initialUsers }: Props) {
     setCurrentPage(1)
   }
 
-  const handlePageChange = (page: number) => {
-    setDirection(page > currentPage ? 1 : -1)
-    setCurrentPage(page)
+  /**
+   * ✅ FIXED:
+   * Accepts both number and updater function
+   * to match React.Dispatch<SetStateAction<number>>
+   */
+  const handlePageChange = (
+    value: number | ((prev: number) => number)
+  ) => {
+    setCurrentPage((prev) => {
+      const next =
+        typeof value === "function" ? value(prev) : value
+
+      setDirection(next > prev ? 1 : -1)
+      return next
+    })
   }
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
     <div className="space-y-8 sm:space-y-10 w-full">
@@ -138,7 +183,7 @@ export default function UsersClient({ initialUsers }: Props) {
         onClear={handleClear}
       />
 
-      {/* ================= GRID WITH ANIMATION ================= */}
+      {/* ================= USERS GRID ================= */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentPage}
@@ -182,7 +227,7 @@ export default function UsersClient({ initialUsers }: Props) {
                   </Badge>
 
                   <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
-                    {user.bookmarkCount} bookmarks
+                    {user.bookmarkCount ?? 0} bookmarks
                   </span>
 
                 </CardContent>
@@ -198,7 +243,7 @@ export default function UsersClient({ initialUsers }: Props) {
         <UsersPagination
           currentPage={currentPage}
           totalPages={totalPages}
-          setCurrentPage={handlePageChange}
+          setCurrentPage={handlePageChange} // ✅ Now type-safe
           direction={direction}
         />
       )}

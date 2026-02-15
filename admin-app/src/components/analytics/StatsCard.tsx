@@ -1,26 +1,57 @@
 "use client"
 
-import { Card, CardContent } from "@/src/components/ui/card"
-import { motion } from "framer-motion"
+import { Card } from "@/src/components/ui/card"
+import clsx from "clsx"
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 interface Props {
   title: string
   value: number
+  subtext?: string
+  highlight?: boolean
 }
 
-export default function StatsCard({ title, value }: Props) {
+/* =========================================================
+   COMPONENT
+========================================================= */
+
+export default function StatsCard({
+  title,
+  value,
+  subtext,
+  highlight = false,
+}: Props) {
+  const safeValue = Number(value) || 0
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+    <Card
+      className={clsx(
+        "p-6 rounded-2xl shadow-sm transition",
+        highlight
+          ? "border-black bg-neutral-100 dark:bg-neutral-800"
+          : "hover:shadow-md"
+      )}
     >
-      <Card className="rounded-2xl shadow-sm border bg-white">
-        <CardContent className="p-6">
-          <p className="text-sm text-muted-foreground">{title}</p>
-          <h3 className="text-3xl font-bold mt-2">{value}</h3>
-        </CardContent>
-      </Card>
-    </motion.div>
+      <div className="space-y-2">
+
+        <p className="text-sm text-muted-foreground">
+          {title}
+        </p>
+
+        <h3 className="text-3xl font-bold">
+          {safeValue}
+        </h3>
+
+        {subtext && (
+          <p className="text-xs text-muted-foreground">
+            {subtext}
+          </p>
+        )}
+
+      </div>
+    </Card>
   )
 }
