@@ -1,12 +1,12 @@
 import { render, screen } from "@testing-library/react"
 import Sidebar from "@/src/components/layout/Sidebar"
 
-// Mock App Router
+
 jest.mock("next/navigation", () => ({
   usePathname: () => "/dashboard",
 }))
 
-// Correct Next Link mock (FORWARD PROPS)
+
 jest.mock("next/link", () => {
   return ({ children, ...props }: any) => {
     return <a {...props}>{children}</a>

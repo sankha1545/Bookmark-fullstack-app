@@ -14,7 +14,7 @@ export default function Topbar({
     <div className="h-16 bg-white border-b flex items-center justify-between px-4 lg:px-8">
       <div className="flex items-center gap-4">
 
-        {/* Hamburger - visible only on mobile */}
+       
         <button
           aria-label="Open menu"
           onClick={onMenuClick}

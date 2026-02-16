@@ -13,9 +13,7 @@ import StatsCard from "@/src/components/analytics/StatsCard"
 import DailyUsersBarChart from "@/src/components/analytics/DailyUsersBarChart"
 import BookmarksLineChart from "@/src/components/analytics/BookmarksLineChart"
 
-/* =========================================================
-   TYPES
-========================================================= */
+
 
 type DashboardStats = {
   totalUsers: number
@@ -33,9 +31,7 @@ type BookmarkData = {
   value: number
 }
 
-/* =========================================================
-   SAFE SANITIZER
-========================================================= */
+
 
 function sanitizeNumber(value: any) {
   return Number(value) || 0
@@ -49,9 +45,7 @@ function sanitizeArray(arr: any[] | undefined) {
   }))
 }
 
-/* =========================================================
-   COMPONENT
-========================================================= */
+
 
 type Props = {
   initialStats: DashboardStats
@@ -83,18 +77,14 @@ export default function DashboardClient({
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [mounted, setMounted] = useState(false)
 
-  /* =========================================================
-     MOUNT FIX
-  ========================================================= */
+ 
 
   useEffect(() => {
     setMounted(true)
     setLastUpdated(new Date())
   }, [])
 
-  /* =========================================================
-     AUTO REFRESH
-  ========================================================= */
+ 
 
   useEffect(() => {
     if (!autoRefresh) return
@@ -106,9 +96,7 @@ export default function DashboardClient({
     return () => clearInterval(interval)
   }, [autoRefresh])
 
-  /* =========================================================
-     REFRESH LOGIC
-  ========================================================= */
+
 
   async function refreshDashboard() {
     setLoading(true)
@@ -141,9 +129,7 @@ export default function DashboardClient({
     }
   }
 
-  /* =========================================================
-     DERIVED METRICS
-  ========================================================= */
+
 
   const growthRate = useMemo(() => {
     if (dailyUsers.length < 2) return 0
@@ -153,9 +139,7 @@ export default function DashboardClient({
     return (((last - prev) / prev) * 100).toFixed(1)
   }, [dailyUsers])
 
-  /* =========================================================
-     UI
-  ========================================================= */
+  
 
   return (
     <div className="space-y-10">
@@ -232,11 +216,7 @@ export default function DashboardClient({
           highlight
         />
 
-        {/* <StatsCard
-          title="Active Users (24h)"
-          value={stats.activeUsers}
-          subtext={`${growthRate}% growth`}
-        /> */}
+   
 
         <StatsCard
           title="Total Messages"

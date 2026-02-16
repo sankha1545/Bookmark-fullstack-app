@@ -10,13 +10,12 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden">
 
-      {/* Background Gradient Blobs */}
+    
       <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
       <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
       <div className="relative z-10 w-full max-w-6xl grid md:grid-cols-2 gap-16 items-center">
 
-        {/* LEFT SIDE — Brand & Messaging */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
@@ -37,7 +36,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Feature Highlights */}
+         
           <div className="space-y-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-3">
               <ShieldCheck size={18} />
@@ -60,7 +59,7 @@ export default function LoginPage() {
           </p>
         </motion.div>
 
-        {/* RIGHT SIDE — Login Card */}
+      
         <motion.div
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
@@ -79,10 +78,10 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              {/* Login Button */}
+             
               <GoogleLoginButton />
 
-              {/* Legal & Trust */}
+             
               <div className="text-center text-xs text-muted-foreground space-y-2">
                 <p>
                   By continuing, you agree to our{" "}
@@ -100,7 +99,7 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              {/* Back to Home */}
+            
               <div className="text-center pt-4">
                 <Link
                   href="/"

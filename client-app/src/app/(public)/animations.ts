@@ -1,11 +1,6 @@
-// src/modules/landing/animations.ts
-
 import type { Variants } from "framer-motion"
 
-/**
- * Properly typed cubic-bezier tuple
- * Must be a fixed-length tuple, NOT number[]
- */
+
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
 export const fadeUp: Variants = {
@@ -18,7 +13,7 @@ export const fadeUp: Variants = {
     y: 0,
     transition: {
       duration: 0.48,
-      ease: EASE_OUT, // ✅ now correctly typed
+      ease: EASE_OUT, 
     },
   },
 }

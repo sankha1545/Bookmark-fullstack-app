@@ -13,7 +13,7 @@ import {
 
 type ChartData = {
   date: string
-  value: number   // ✅ match analytics.ts
+  value: number  
 }
 
 type Props = {
@@ -22,9 +22,7 @@ type Props = {
 
 export default function DailyUsersBarChart({ data }: Props) {
 
-  /* =====================================
-     SAFE NORMALIZATION
-  ===================================== */
+
   const safeData = useMemo(() => {
     if (!Array.isArray(data)) return []
 
@@ -37,9 +35,7 @@ export default function DailyUsersBarChart({ data }: Props) {
       .sort((a, b) => a.date.localeCompare(b.date))
   }, [data])
 
-  /* =====================================
-     PROFESSIONAL DATE FORMAT
-  ===================================== */
+ 
   const formatXAxis = (value: string) => {
     const d = new Date(value)
     if (isNaN(d.getTime())) return value
@@ -47,7 +43,7 @@ export default function DailyUsersBarChart({ data }: Props) {
     return d.toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
-    }) // 13 Feb
+    }) 
   }
 
   return (
@@ -96,7 +92,7 @@ export default function DailyUsersBarChart({ data }: Props) {
               />
 
               <Bar
-                dataKey="value"   // ✅ FIXED HERE
+                dataKey="value"   
                 fill="#000"
                 radius={[8, 8, 0, 0]}
                 animationDuration={400}

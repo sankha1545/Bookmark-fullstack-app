@@ -39,9 +39,7 @@ export default function BookmarkHeadlineView({ bookmarks, onEdit, onDelete }: Pr
   )
 }
 
-/* ==================================================
-   INDIVIDUAL HEADLINE ROW COMPONENT
-================================================== */
+
 
 function HeadlineRow({
   bookmark,
@@ -72,7 +70,7 @@ function HeadlineRow({
 
   const [faviconError, setFaviconError] = useState(false)
 
-  /* Accessibility: ensure actions are visible on touch devices and when focused */
+ 
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -85,9 +83,9 @@ function HeadlineRow({
       role="listitem"
       aria-labelledby={`bookmark-title-${bookmark.id}`}
     >
-      {/* LEFT SIDE */}
+      
       <div className="flex items-center gap-3 min-w-0">
-        {/* Favicon */}
+        
         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-muted flex items-center justify-center overflow-hidden border shrink-0 flex-shrink-0">
           {faviconUrl && !faviconError ? (
             <img
@@ -101,7 +99,7 @@ function HeadlineRow({
           )}
         </div>
 
-        {/* TEXT CONTENT */}
+       
         <div className="min-w-0 flex-1">
           <h3
             id={`bookmark-title-${bookmark.id}`}
@@ -126,12 +124,7 @@ function HeadlineRow({
         </div>
       </div>
 
-      {/* RIGHT ACTIONS */}
-      {/*
-        On small screens (mobile/touch), actions are always visible (opacity-100).
-        On larger screens we hide them until hover/focus to match desktop UX.
-        Also allow keyboard users to reveal actions via focus-within (handled in parent).
-      */}
+     
       <div
         className={
           `flex items-center gap-2
@@ -140,7 +133,7 @@ function HeadlineRow({
           `
         }
       >
-        {/* VIEW BUTTON */}
+       
         <a href={bookmark.url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${bookmark.title}`}>
           <Button size="sm" variant="outline" className="flex items-center gap-2">
             <Eye size={14} aria-hidden />
@@ -148,13 +141,13 @@ function HeadlineRow({
           </Button>
         </a>
 
-        {/* EDIT BUTTON */}
+       
         <Button size="sm" variant="outline" onClick={onEdit} aria-label={`Edit ${bookmark.title}`} className="flex items-center gap-2">
           <Pencil size={14} aria-hidden />
           <span className="sr-only">Edit</span>
         </Button>
 
-        {/* DELETE BUTTON */}
+     
         <Button size="sm" variant="destructive" onClick={onDelete} aria-label={`Delete ${bookmark.title}`} className="flex items-center gap-2">
           <Trash2 size={14} aria-hidden />
           <span className="sr-only">Delete</span>

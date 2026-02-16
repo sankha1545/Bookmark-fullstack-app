@@ -1,3 +1,4 @@
+// app/page.tsx  (or wherever your landing route is)
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 
@@ -18,7 +19,7 @@ export default async function LandingPage() {
   if (session) redirect("/dashboard")
 
   return (
-    <main className="relative">
+    <main className="relative min-h-screen" role="main">
       <LandingNavbar />
       <HeroSection />
       <SecuritySection />

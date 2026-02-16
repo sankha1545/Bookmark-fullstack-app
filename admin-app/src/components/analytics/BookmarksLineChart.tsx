@@ -29,9 +29,7 @@ export default function BookmarksLineChart({ data }: Props) {
   const [view, setView] = useState<ViewMode>("daily")
   const [dailyRange, setDailyRange] = useState<DailyRange>(7)
 
-  /* ======================================================
-     SAFE DATA NORMALIZATION
-  ====================================================== */
+ 
 
   const normalizedData = useMemo(() => {
     if (!Array.isArray(data)) return []
@@ -45,16 +43,14 @@ export default function BookmarksLineChart({ data }: Props) {
       .sort((a, b) => a.date.localeCompare(b.date)) // ISO-safe
   }, [data])
 
-  /* ======================================================
-     FILTER + GROUPING
-  ====================================================== */
+
 
   const filteredData = useMemo(() => {
     if (normalizedData.length === 0) return []
 
     const now = Date.now()
 
-    /* ---------- DAILY ---------- */
+ 
     if (view === "daily") {
       const cutoff = new Date(
         now - dailyRange * 24 * 60 * 60 * 1000
@@ -65,7 +61,7 @@ export default function BookmarksLineChart({ data }: Props) {
       )
     }
 
-    /* ---------- MONTHLY ---------- */
+  
     if (view === "monthly") {
       const grouped: Record<string, number> = {}
 
@@ -86,7 +82,7 @@ export default function BookmarksLineChart({ data }: Props) {
         }))
     }
 
-    /* ---------- YEARLY ---------- */
+   
     if (view === "yearly") {
       const grouped: Record<string, number> = {}
 
@@ -110,9 +106,7 @@ export default function BookmarksLineChart({ data }: Props) {
     return normalizedData
   }, [normalizedData, view, dailyRange])
 
-  /* ======================================================
-     PROFESSIONAL DATE FORMATTER
-  ====================================================== */
+
 
   const formatXAxis = (value: string) => {
     if (!value) return ""
@@ -124,7 +118,7 @@ export default function BookmarksLineChart({ data }: Props) {
       return d.toLocaleDateString("en-IN", {
         day: "2-digit",
         month: "short",
-      }) // 13 Feb
+      }) 
     }
 
     if (view === "monthly") {
@@ -145,14 +139,12 @@ export default function BookmarksLineChart({ data }: Props) {
 
   const chartHeight = 260
 
-  /* ======================================================
-     RENDER
-  ====================================================== */
+ 
 
   return (
     <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm space-y-6 w-full">
 
-      {/* Header */}
+    
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <h3 className="text-base sm:text-lg font-semibold">
           Bookmarks Added Over Time
@@ -179,7 +171,7 @@ export default function BookmarksLineChart({ data }: Props) {
         </div>
       </div>
 
-      {/* Daily Range Buttons */}
+    
       {view === "daily" && (
         <div className="flex gap-2 flex-wrap">
           {[7, 30, 60].map((range) => (
@@ -201,7 +193,7 @@ export default function BookmarksLineChart({ data }: Props) {
         </div>
       )}
 
-      {/* Chart */}
+     
       <div className="w-full overflow-x-auto">
         <div className="min-w-[320px] sm:min-w-0">
           <ResponsiveContainer

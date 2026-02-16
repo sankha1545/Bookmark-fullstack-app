@@ -21,7 +21,7 @@ export default function AddBookmarkModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  /* ESC CLOSE */
+  
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose()
@@ -48,10 +48,10 @@ export default function AddBookmarkModal({
       setLoading(true)
       setError(null)
 
-      // 🔥 Delegate creation to Dashboard
+   
       await onCreate(title.trim(), url.trim())
 
-      // Reset form
+    
       setTitle("")
       setUrl("")
 
@@ -68,16 +68,16 @@ export default function AddBookmarkModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
 
-      {/* Overlay */}
+      
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal */}
+    
       <div className="relative bg-white dark:bg-neutral-950 w-full max-w-md rounded-2xl shadow-xl p-8 z-10 animate-in fade-in zoom-in-95 duration-200">
 
-        {/* Header */}
+      
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold">
             Add New Bookmark
@@ -91,7 +91,7 @@ export default function AddBookmarkModal({
           </button>
         </div>
 
-        {/* Form */}
+       
         <form onSubmit={handleSubmit} className="space-y-5">
 
           {error && (

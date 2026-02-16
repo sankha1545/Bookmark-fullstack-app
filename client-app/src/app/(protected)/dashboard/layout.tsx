@@ -9,9 +9,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  /* ======================================
-     AUTH (UNCHANGED)
-  ====================================== */
+
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
@@ -40,9 +38,7 @@ export default async function DashboardLayout({
     redirect("/login")
   }
 
-  /* ======================================
-     RESPONSIVE LAYOUT
-  ====================================== */
+ 
   return (
     <div className="flex min-h-dvh w-full bg-muted/30 overflow-hidden">
 

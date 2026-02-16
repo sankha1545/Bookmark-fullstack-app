@@ -16,7 +16,7 @@ export async function POST() {
             return cookieStore.getAll();
           },
           setAll() {
-            // not needed in API route
+           
           },
         },
       }
@@ -34,7 +34,7 @@ export async function POST() {
       );
     }
 
-    // Delete profile row
+  
     const { error: profileError } = await supabase
       .from("profiles")
       .delete()
@@ -47,7 +47,7 @@ export async function POST() {
       );
     }
 
-    // Admin client for deleting auth user
+   
     const adminClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!

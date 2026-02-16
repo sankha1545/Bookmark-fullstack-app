@@ -3,9 +3,7 @@
 import { Card } from "@/src/components/ui/card"
 import clsx from "clsx"
 
-/* =========================================================
-   TYPES
-========================================================= */
+
 
 interface Props {
   title: string
@@ -14,9 +12,7 @@ interface Props {
   highlight?: boolean
 }
 
-/* =========================================================
-   COMPONENT
-========================================================= */
+
 
 export default function StatsCard({
   title,

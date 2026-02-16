@@ -11,7 +11,7 @@ export default function PricingSection() {
       id="pricing"
       className="relative py-32 px-6 overflow-hidden"
     >
-      {/* Soft Background Accent */}
+      
       <div className="absolute left-[-200px] bottom-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl" />
 
       <motion.div
@@ -21,7 +21,7 @@ export default function PricingSection() {
         viewport={{ once: true }}
         className="relative z-10 max-w-6xl mx-auto space-y-20"
       >
-        {/* Section Header */}
+        
         <motion.div
           variants={fadeUp}
           className="text-center max-w-3xl mx-auto space-y-6"
@@ -36,10 +36,10 @@ export default function PricingSection() {
           </p>
         </motion.div>
 
-        {/* Pricing Cards */}
+      
         <div className="grid md:grid-cols-2 gap-12">
 
-          {/* Free Plan */}
+         
           <motion.div
             variants={fadeUp}
             className="p-10 rounded-2xl border bg-card shadow-sm"
@@ -84,12 +84,12 @@ export default function PricingSection() {
             </Button>
           </motion.div>
 
-          {/* Pro Plan */}
+         
           <motion.div
             variants={fadeUp}
             className="relative p-10 rounded-2xl border-2 border-primary bg-card shadow-lg"
           >
-            {/* Badge */}
+          
             <div className="absolute top-4 right-4 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full">
               Coming Soon
             </div>
@@ -136,7 +136,7 @@ export default function PricingSection() {
           </motion.div>
         </div>
 
-        {/* Trust Text */}
+      
         <motion.div
           variants={fadeUp}
           className="text-center text-sm text-muted-foreground pt-8"

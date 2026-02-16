@@ -13,8 +13,7 @@ import {
 } from "lucide-react"
 import Navbar from "@/modules/landing/components/LandingNavbar"
 import Footer from "@/modules/landing/components/Footer"
-// Animation variants
-// Animation variants
+
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -33,7 +32,7 @@ export default function SecurityPage() {
   return (
     <section className="relative min-h-screen px-6 py-24 overflow-hidden">
 <Navbar/>
-      {/* Same Gradient Background as Hero */}
+     
       <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
       <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
@@ -43,7 +42,7 @@ export default function SecurityPage() {
         animate="visible"
         className="relative z-10 max-w-5xl mx-auto space-y-16"
       >
-        {/* Header Section */}
+      
         <motion.div variants={fadeUp} className="text-center space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
             Enterprise-Grade
@@ -58,7 +57,7 @@ export default function SecurityPage() {
             to protect your data.
           </p>
 
-          {/* Security Highlights */}
+         
           <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
             <span className="flex items-center gap-2">
               <ShieldCheck size={16} />
@@ -75,10 +74,10 @@ export default function SecurityPage() {
           </div>
         </motion.div>
 
-        {/* Security Content Sections */}
+        
         <motion.div variants={fadeUp} className="space-y-12">
 
-          {/* Authentication */}
+       
           <div>
             <h2 className="text-2xl font-semibold flex items-center gap-3">
               <KeyRound size={20} className="text-primary" />
@@ -92,7 +91,7 @@ export default function SecurityPage() {
             </p>
           </div>
 
-          {/* Encryption */}
+          
           <div>
             <h2 className="text-2xl font-semibold flex items-center gap-3">
               <Lock size={20} className="text-primary" />
@@ -106,7 +105,7 @@ export default function SecurityPage() {
             </p>
           </div>
 
-          {/* Database Security */}
+         
           <div>
             <h2 className="text-2xl font-semibold flex items-center gap-3">
               <Database size={20} className="text-primary" />

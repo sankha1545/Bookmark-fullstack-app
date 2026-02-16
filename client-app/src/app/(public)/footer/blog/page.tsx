@@ -59,7 +59,7 @@ export default function BlogPage() {
                 {blogPosts[0].description}
               </p>
 
-              <Link href={`/blog/${blogPosts[0].slug}`}>
+              <Link href={`/footer/blog/${blogPosts[0].slug}`}>
                 <Button variant="outline">
                   Read Article
                   <ArrowRight className="ml-2" size={16} />
@@ -96,7 +96,7 @@ export default function BlogPage() {
                   </p>
 
                   <Link
-                    href={`/blog/${post.slug}`}
+                    href={`/footer/blog/${post.slug}`}
                     className="text-sm hover:underline"
                   >
                     Read →

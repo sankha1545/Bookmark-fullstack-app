@@ -1,4 +1,4 @@
-// src/modules/auth/services/auth.service.ts
+
 
 import { supabase } from "@/lib/supabase/client"
 

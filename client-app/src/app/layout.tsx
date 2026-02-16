@@ -49,7 +49,7 @@ export default function RootLayout({
           </main>
         </div>
 
-        {/* Sonner Global Toast */}
+        
         <Toaster
           position="top-right"
           richColors

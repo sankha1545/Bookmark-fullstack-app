@@ -2,12 +2,12 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import UsersClient from "@/src/app/(protected)/users/UsersClient"
 
-// 🔥 Mock next/link
+
 jest.mock("next/link", () => {
   return ({ children }: any) => <div>{children}</div>
 })
 
-// 🔥 Mock framer-motion
+
 jest.mock("framer-motion", () => ({
   motion: {
     div: ({ children }: any) => <div>{children}</div>,
@@ -15,7 +15,7 @@ jest.mock("framer-motion", () => ({
   AnimatePresence: ({ children }: any) => <div>{children}</div>,
 }))
 
-// 🔥 Mock UsersFilters (so we can trigger setters manually)
+
 jest.mock(
   "@/src/app/(protected)/users/UsersFilters",
   () => (props: any) => (
@@ -33,7 +33,7 @@ jest.mock(
   )
 )
 
-// 🔥 Mock Pagination
+
 jest.mock(
   "@/src/app/(protected)/users/UsersPagination",
   () => (props: any) => (

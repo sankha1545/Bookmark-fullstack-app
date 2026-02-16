@@ -22,9 +22,7 @@ export default function Sidebar({ user }: any) {
     window.location.replace("/login")
   }
 
-  /* =============================
-     Prevent body scroll when open
-  ============================= */
+  
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden"
@@ -54,7 +52,7 @@ export default function Sidebar({ user }: any) {
 
   return (
     <>
-      {/* MOBILE TOP BAR BUTTON */}
+     
       <button
         onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-50 bg-background border rounded-lg p-2 shadow-sm"
@@ -62,7 +60,7 @@ export default function Sidebar({ user }: any) {
         <Menu size={18} />
       </button>
 
-      {/* BACKDROP */}
+     
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
@@ -70,7 +68,7 @@ export default function Sidebar({ user }: any) {
         />
       )}
 
-      {/* SIDEBAR */}
+  
       <aside
         className={`
           fixed lg:static
@@ -86,14 +84,14 @@ export default function Sidebar({ user }: any) {
           lg:translate-x-0
         `}
       >
-        {/* CLOSE BUTTON (Mobile Only) */}
+       
         <div className="lg:hidden flex justify-end p-4">
           <button onClick={() => setMobileOpen(false)}>
             <X size={20} />
           </button>
         </div>
 
-        {/* TOP */}
+       
         <div>
           <div className="p-6 font-bold text-lg tracking-tight">
             Smart Bookmark
@@ -105,7 +103,7 @@ export default function Sidebar({ user }: any) {
           </nav>
         </div>
 
-        {/* PROFILE */}
+       
         <div className="p-4 border-t space-y-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-semibold text-primary">

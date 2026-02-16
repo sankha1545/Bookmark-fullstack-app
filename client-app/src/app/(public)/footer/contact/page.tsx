@@ -24,9 +24,7 @@ type StateItem = {
 }
 
 export default function ContactPage() {
-  /* ==============================
-     STATE
-  ============================== */
+  
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [country, setCountry] = useState("")
@@ -41,9 +39,7 @@ export default function ContactPage() {
   const [loadingCountries, setLoadingCountries] = useState(true)
   const [loadingStates, setLoadingStates] = useState(false)
 
-  /* ==============================
-     FETCH COUNTRIES
-  ============================== */
+ 
   useEffect(() => {
     async function loadCountries() {
       try {
@@ -64,9 +60,6 @@ export default function ContactPage() {
     loadCountries()
   }, [])
 
-  /* ==============================
-     FETCH STATES + DIAL CODE
-  ============================== */
   useEffect(() => {
     if (!country) {
       setStates([])
@@ -102,9 +95,7 @@ export default function ContactPage() {
     if (selected) setDialCode(selected.dialCode)
   }, [country, countries])
 
-  /* ==============================
-     VALIDATION
-  ============================== */
+ 
   function validateForm() {
     if (
       !name.trim() ||
@@ -128,9 +119,7 @@ export default function ContactPage() {
     return true
   }
 
-  /* ==============================
-     SUBMIT
-  ============================== */
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
@@ -177,9 +166,7 @@ export default function ContactPage() {
     }
   }
 
-  /* ==============================
-     UI
-  ============================== */
+ 
   return (
     <>
       <Navbar />

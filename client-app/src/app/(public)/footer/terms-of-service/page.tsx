@@ -13,9 +13,7 @@ import {
 } from "lucide-react"
 import Navbar from "@/modules/landing/components/LandingNavbar"
 import Footer from "@/modules/landing/components/Footer"
-// Animation variants
 
-// Animation variants
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -34,7 +32,7 @@ export default function TermsPage() {
   return (
     <section className="relative min-h-screen px-6 py-24 overflow-hidden">
  <Navbar />
-      {/* Same Gradient Background as Hero */}
+     
       <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
       <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
@@ -44,7 +42,7 @@ export default function TermsPage() {
         animate="visible"
         className="relative z-10 max-w-5xl mx-auto space-y-16"
       >
-        {/* Header */}
+     
         <motion.div variants={fadeUp} className="text-center space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
             Terms of Service
@@ -77,7 +75,7 @@ export default function TermsPage() {
         {/* Content Sections */}
         <motion.div variants={fadeUp} className="space-y-12">
 
-          {/* Acceptance */}
+         
           <div>
             <h2 className="text-2xl font-semibold flex items-center gap-3">
               <FileText size={20} className="text-primary" />
@@ -91,7 +89,7 @@ export default function TermsPage() {
             </p>
           </div>
 
-          {/* User Responsibilities */}
+        
           <div>
             <h2 className="text-2xl font-semibold flex items-center gap-3">
               <ShieldCheck size={20} className="text-primary" />
@@ -105,7 +103,7 @@ export default function TermsPage() {
             </p>
           </div>
 
-          {/* Prohibited Uses */}
+        
           <div>
             <h2 className="text-2xl font-semibold flex items-center gap-3">
               <Ban size={20} className="text-primary" />

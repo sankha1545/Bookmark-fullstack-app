@@ -48,9 +48,7 @@ export default function DashboardPage() {
 
   const channelRef = useRef<BroadcastChannel | null>(null)
 
-  /* ==============================
-     BROADCAST CHANNEL
-  ============================== */
+  
   useEffect(() => {
     const channel = new BroadcastChannel("bookmarks")
     channelRef.current = channel
@@ -86,9 +84,7 @@ export default function DashboardPage() {
     return () => channel.close()
   }, [])
 
-  /* ==============================
-     FETCH
-  ============================== */
+ 
   async function fetchBookmarks() {
     setLoading(true)
     const { data, error } = await supabase
@@ -115,9 +111,7 @@ export default function DashboardPage() {
     fetchBookmarks()
   }, [])
 
-  /* ==============================
-     CREATE
-  ============================== */
+ 
  async function createBookmark(title: string, url: string) {
   const {
     data: { user },
@@ -157,9 +151,7 @@ export default function DashboardPage() {
 }
 
 
-  /* ==============================
-     DELETE
-  ============================== */
+
   async function confirmDelete() {
     if (!deleting) return
 
@@ -180,9 +172,7 @@ export default function DashboardPage() {
     setDeleting(null)
   }
 
-  /* ==============================
-     TOGGLE FAV
-  ============================== */
+ 
   async function toggleFavourite(bookmark: Bookmark) {
     await supabase
       .from("bookmarks")
@@ -198,9 +188,7 @@ export default function DashboardPage() {
     )
   }
 
-  /* ==============================
-     FILTER + SORT
-  ============================== */
+
   const filteredBookmarks = useMemo(() => {
     let list = [...bookmarks]
 
@@ -242,9 +230,7 @@ export default function DashboardPage() {
     return list
   }, [bookmarks, search, activeTab, sortBy])
 
-  /* ==============================
-     PAGINATION
-  ============================== */
+ 
   const totalBookmarks = filteredBookmarks.length
   const totalPages = Math.max(
     1,
@@ -276,9 +262,7 @@ export default function DashboardPage() {
     }
   }, [filteredBookmarks])
 
-  /* ==============================
-     ANIMATION
-  ============================== */
+ 
   const variants = {
     enter: (dir: number) => ({
       x: dir > 0 ? 60 : -60,
@@ -294,9 +278,6 @@ export default function DashboardPage() {
     }),
   }
 
-  /* ==============================
-     UI
-  ============================== */
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-8 max-w-7xl mx-auto">
 

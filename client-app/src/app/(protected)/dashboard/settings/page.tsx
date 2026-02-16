@@ -16,17 +16,13 @@ type Country = { name: string; cca2: string; dialCode?: string };
 type StateItem = { name: string };
 
 export default function SettingsPage() {
-  /* =========================================================
-     Theme Handling
-  ========================================================= */
+
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const themeValue = mounted ? theme ?? resolvedTheme : "system";
 
-  /* =========================================================
-     Core State
-  ========================================================= */
+ 
   const [user, setUser] = useState<any | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
@@ -50,12 +46,10 @@ export default function SettingsPage() {
   const [countriesLoading, setCountriesLoading] = useState(false);
   const [statesLoading, setStatesLoading] = useState(false);
 
-  /* Prevent StrictMode double-fetch */
+ 
   const didFetchRef = useRef(false);
 
-  /* =========================================================
-     Fetch User + Profile
-  ========================================================= */
+
   const fetchUserAndProfile = useCallback(async () => {
     setLoadingProfile(true);
 
@@ -99,9 +93,7 @@ export default function SettingsPage() {
     fetchUserAndProfile();
   }, [fetchUserAndProfile]);
 
-  /* =========================================================
-     Countries Loader
-  ========================================================= */
+
   useEffect(() => {
     let cancelled = false;
 
@@ -158,9 +150,7 @@ export default function SettingsPage() {
     };
   }, []);
 
-  /* =========================================================
-     Load States When Country Changes
-  ========================================================= */
+ 
   useEffect(() => {
     if (!country) {
       setStates([]);
@@ -220,9 +210,7 @@ export default function SettingsPage() {
     return Array.from(map.values());
   }, [countries]);
 
-  /* =========================================================
-     SAVE PROFILE (FIXED)
-  ========================================================= */
+
   const saveProfile = useCallback(async () => {
     if (!user) return;
 
@@ -265,9 +253,7 @@ export default function SettingsPage() {
     }
   }, [user, displayName, country, stateName, dialCode, phone, fetchUserAndProfile]);
 
-  /* =========================================================
-     Logout + Delete
-  ========================================================= */
+
   async function logout() {
     await fetch("/api/logout", { method: "POST" });
     window.location.replace("/login");
@@ -288,9 +274,7 @@ export default function SettingsPage() {
     }
   }
 
-  /* =========================================================
-     RENDER
-  ========================================================= */
+
   return (
     <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-8">
       <div>

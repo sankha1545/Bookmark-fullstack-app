@@ -13,8 +13,7 @@ import {
 } from "lucide-react"
 import Navbar from "@/modules/landing/components/LandingNavbar"
 import Footer from "@/modules/landing/components/Footer"
-// Animation variants
-// Animation variants
+
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
@@ -34,7 +33,7 @@ export default function CookiesPage() {
    
     <section className="relative min-h-screen px-6 py-24 overflow-hidden">
  <Navbar />
-      {/* Same Animated Gradient as Hero */}
+     
       <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
       <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
@@ -78,10 +77,10 @@ export default function CookiesPage() {
           </p>
         </motion.div>
 
-        {/* Content Sections */}
+       
         <motion.div variants={fadeUp} className="space-y-14 text-muted-foreground leading-relaxed">
 
-          {/* Section 1 */}
+          
           <section>
             <h2 className="text-2xl font-semibold text-foreground flex items-center gap-3">
               <Cookie size={20} className="text-primary" />
@@ -98,7 +97,7 @@ export default function CookiesPage() {
             </p>
           </section>
 
-          {/* Section 2 */}
+        
           <section>
             <h2 className="text-2xl font-semibold text-foreground flex items-center gap-3">
               <ShieldCheck size={20} className="text-primary" />
@@ -117,7 +116,7 @@ export default function CookiesPage() {
             </ul>
           </section>
 
-          {/* Section 3 */}
+          
           <section>
             <h2 className="text-2xl font-semibold text-foreground flex items-center gap-3">
               <Lock size={20} className="text-primary" />
@@ -159,7 +158,7 @@ export default function CookiesPage() {
             </div>
           </section>
 
-          {/* Section 4 */}
+        
           <section>
             <h2 className="text-2xl font-semibold text-foreground flex items-center gap-3">
               <Globe size={20} className="text-primary" />
@@ -180,7 +179,7 @@ export default function CookiesPage() {
             </p>
           </section>
 
-          {/* Section 5 */}
+         
           <section>
             <h2 className="text-2xl font-semibold text-foreground flex items-center gap-3">
               <Settings size={20} className="text-primary" />
@@ -201,7 +200,7 @@ export default function CookiesPage() {
             </ul>
           </section>
 
-          {/* Section 6 */}
+          
           <section>
             <h2 className="text-2xl font-semibold text-foreground flex items-center gap-3">
               <ShieldCheck size={20} className="text-primary" />
@@ -219,7 +218,7 @@ export default function CookiesPage() {
             </p>
           </section>
 
-          {/* Section 7 */}
+         
           <section>
             <h2 className="text-2xl font-semibold text-foreground">
               7. Updates to This Policy

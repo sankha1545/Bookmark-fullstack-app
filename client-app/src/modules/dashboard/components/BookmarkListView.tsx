@@ -54,9 +54,7 @@ export default function BookmarkListView({
   )
 }
 
-/* =========================================
-   Individual List Row Component
-========================================= */
+
 
 function ListRow({
   bookmark,
@@ -206,10 +204,7 @@ function ListRow({
         </div>
       </div>
 
-      {/* RIGHT: actions
-          - On small screens: actions are always visible and arranged horizontally (wrap if necessary)
-          - On md+ screens: actions are hidden until hover (original behaviour)
-      */}
+     
       <div
         className={`
           ml-2
@@ -221,7 +216,7 @@ function ListRow({
           whitespace-nowrap
         `}
       >
-        {/* VIEW (open in new tab) */}
+       
         <a
           href={bookmark.url}
           target="_blank"
@@ -236,7 +231,7 @@ function ListRow({
           </Button>
         </a>
 
-        {/* EDIT */}
+        
         <Button
           size="icon"
           variant="outline"
@@ -250,7 +245,7 @@ function ListRow({
           <span className="sr-only">Edit</span>
         </Button>
 
-        {/* DELETE */}
+      
         <Button
           size="icon"
           variant="destructive"

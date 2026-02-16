@@ -2,8 +2,8 @@ export type Bookmark = {
   id: string
   title: string
   url: string
-  tags?: string[]        // ✅ remove null
-  note?: string          // ✅ remove null
+  tags?: string[]        
+  note?: string          
   favourite: boolean
   created_at: string
 }

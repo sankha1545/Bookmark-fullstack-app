@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { fadeUp, staggerContainer } from "@/modules/landing/animations"
 import Link from "next/link"
 import {
@@ -17,17 +17,6 @@ import {
 import Navbar from "@/modules/landing/components/LandingNavbar"
 import Footer from "@/modules/landing/components/Footer"
 
-/**
- * AboutPage
- *
- * - Fully responsive: sticky TOC on md+, horizontal scroll TOC on mobile
- * - Scroll-spy (center of viewport)
- * - Animated counters (runs once)
- * - Keyboard navigation (ArrowUp/ArrowDown)
- * - Accessible: skip link, proper landmarks, aria-current states
- * - Defensive parsing and throttled scroll for performance
- */
-
 const sections = [
   { id: "introduction", label: "Introduction" },
   { id: "problem", label: "Problem" },
@@ -41,24 +30,38 @@ const sections = [
 ]
 
 export default function AboutPage() {
+  // active state & ref to avoid stale closures inside scroll RAF loop
   const [active, setActive] = useState<string>("introduction")
+  const activeRef = useRef<string>(active)
+  useEffect(() => {
+    activeRef.current = active
+  }, [active])
+
+  // metrics counting
   const [counts, setCounts] = useState({ users: 0, bookmarks: 0, syncs: 0 })
   const countersStarted = useRef(false)
 
+  // rAF / scroll helpers
   const rafRef = useRef<number | null>(null)
   const lastScroll = useRef<number>(0)
 
-  // Scroll spy: use requestAnimationFrame to throttle
+  // Keep a stable list of section ids (memo)
+  const sectionList = useMemo(() => sections.map((s) => s.id), [])
+
+  // Scroll / active-section detection (uses rAF for smoothness)
   useEffect(() => {
     function check() {
-      // center of viewport
-      const center = window.innerHeight / 2
-      for (const section of sections) {
-        const el = document.getElementById(section.id)
+      const center = window.innerHeight * 0.5
+      for (const id of sectionList) {
+        const el = document.getElementById(id)
         if (!el) continue
         const rect = el.getBoundingClientRect()
         if (rect.top <= center && rect.bottom >= center) {
-          if (active !== section.id) setActive(section.id)
+          // use ref to compare current active to avoid stale closure
+          if (activeRef.current !== id) {
+            setActive(id)
+            activeRef.current = id
+          }
           break
         }
       }
@@ -67,27 +70,31 @@ export default function AboutPage() {
 
     const onScroll = () => {
       if (rafRef.current == null) {
-        rafRef.current = requestAnimationFrame(check)
+        rafRef.current = window.requestAnimationFrame(check)
       }
       lastScroll.current = Date.now()
     }
 
-    // initial check
+    const onResize = () => {
+      // run check via RAF to keep consistent
+      if (rafRef.current == null) rafRef.current = window.requestAnimationFrame(check)
+    }
+
     if (typeof window !== "undefined") {
+      // run once to set initial active
       check()
       window.addEventListener("scroll", onScroll, { passive: true })
-      window.addEventListener("resize", onScroll)
+      window.addEventListener("resize", onResize)
     }
 
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
       window.removeEventListener("scroll", onScroll)
-      window.removeEventListener("resize", onScroll)
+      window.removeEventListener("resize", onResize)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // run once
+  }, [sectionList])
 
-  // Counters animation on intersection (runs once)
+  // Metrics counter trigger via IntersectionObserver
   useEffect(() => {
     const metricsEl = document.getElementById("introduction")
     if (!metricsEl) return
@@ -107,9 +114,7 @@ export default function AboutPage() {
               const ease = 1 - Math.pow(1 - t, 3) // easeOut cubic
               setCounts({
                 users: Math.floor(from.users + (to.users - from.users) * ease),
-                bookmarks: Math.floor(
-                  from.bookmarks + (to.bookmarks - from.bookmarks) * ease
-                ),
+                bookmarks: Math.floor(from.bookmarks + (to.bookmarks - from.bookmarks) * ease),
                 syncs: Math.floor(from.syncs + (to.syncs - from.syncs) * ease),
               })
               if (t < 1) requestAnimationFrame(step)
@@ -125,36 +130,35 @@ export default function AboutPage() {
     return () => observer.disconnect()
   }, [])
 
-  // Keyboard navigation between sections via ArrowUp / ArrowDown
+  // keyboard navigation (arrow up/down) — keeps dependency on active so highlighting updates
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        const idx = sections.findIndex((s) => s.id === active)
+        const idx = sectionList.findIndex((s) => s === active)
         if (idx === -1) return
-        const nextIdx =
-          e.key === "ArrowDown"
-            ? Math.min(sections.length - 1, idx + 1)
-            : Math.max(0, idx - 1)
-        const next = sections[nextIdx]
-        const el = document.getElementById(next.id)
+        const nextIdx = e.key === "ArrowDown" ? Math.min(sectionList.length - 1, idx + 1) : Math.max(0, idx - 1)
+        const next = sectionList[nextIdx]
+        const el = document.getElementById(next)
         if (el) {
           e.preventDefault()
           el.scrollIntoView({ behavior: "smooth", block: "start" })
+          // update active immediately for a snappy UI
+          setActive(next)
         }
       }
     }
 
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [active])
+  }, [active, sectionList])
 
-  // Utility: smooth scroll to id (used by mobile TOC)
   const scrollToId = (id: string) => {
     const el = document.getElementById(id)
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+    // update active for faster visual feedback
+    setActive(id)
   }
 
-  // Defensive helpers
   const safeFormatDate = (input?: string | null) => {
     if (!input) return ""
     try {
@@ -167,7 +171,8 @@ export default function AboutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    // root fills parent flex, stacks content vertically, prevents horizontal overflow
+    <div className="w-full max-w-full min-h-screen flex flex-col bg-background text-foreground antialiased overflow-x-hidden">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-primary focus:text-primary-foreground px-3 py-2 rounded"
@@ -179,21 +184,24 @@ export default function AboutPage() {
         <Navbar />
       </header>
 
-      {/* Hero background circles */}
-      <div aria-hidden className="pointer-events-none fixed left-[-220px] top-0 w-[520px] h-[520px] bg-yellow-300/14 rounded-full blur-3xl animate-[pulse_8s_infinite] mix-blend-multiply" />
-      <div aria-hidden className="pointer-events-none fixed right-[-220px] bottom-0 w-[520px] h-[520px] bg-pink-400/14 rounded-full blur-3xl animate-[pulse_8s_infinite] mix-blend-multiply" />
+      {/* full-width decorative wrapper (no h-0) */}
+      <div className="relative w-full pointer-events-none" aria-hidden>
+        <div className="absolute -left-[220px] top-0 w-[520px] h-[520px] bg-yellow-300/14 rounded-full blur-3xl animate-[pulse_8s_infinite] mix-blend-multiply" />
+        <div className="absolute -right-[220px] bottom-0 w-[520px] h-[520px] bg-pink-400/14 rounded-full blur-3xl animate-[pulse_8s_infinite] mix-blend-multiply" />
+      </div>
 
-      <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid md:grid-cols-[260px_1fr] gap-12">
+      {/* main becomes flex-1 so footer is pushed below and layout won't collapse */}
+      <main
+  id="main"
+  className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 overflow-hidden"
+>
+
+<div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-10 w-full">
+
           {/* Desktop TOC */}
-          <aside className="hidden md:block sticky top-28 self-start">
-            <nav aria-label="On page navigation" className="space-y-6">
-              <motion.ul
-                initial="hidden"
-                animate="visible"
-                variants={staggerContainer}
-                className="space-y-3"
-              >
+          <aside className="hidden md:block sticky top-20 self-start h-[calc(100vh-6rem)] overflow-y-auto">
+            <nav aria-label="On page navigation" className="space-y-6 px-1">
+              <motion.ul initial="hidden" animate="visible" variants={staggerContainer} className="space-y-3">
                 {sections.map((section) => (
                   <motion.li key={section.id} variants={fadeUp}>
                     <a
@@ -214,34 +222,25 @@ export default function AboutPage() {
                   </motion.li>
                 ))}
               </motion.ul>
-            </nav>
 
-            {/* quick action */}
-            <div className="mt-8 border rounded-lg p-4 bg-card">
-              <h4 className="text-sm font-semibold mb-2">Quick Actions</h4>
-              <div className="flex flex-col gap-2">
-                <Link
-                  href="/login"
-                  className="text-sm px-3 py-2 rounded-md bg-primary text-primary-foreground text-center"
-                >
-                  Open App
-                </Link>
-                <a
-                  href="#roadmap"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    scrollToId("roadmap")
-                  }}
-                  className="text-sm px-3 py-2 rounded-md border text-center hover:bg-muted"
-                >
-                  View Roadmap
-                </a>
+              {/* quick action */}
+              <div className="mt-6 border rounded-lg p-4 bg-card">
+                <h4 className="text-sm font-semibold mb-2">Quick Actions</h4>
+                <div className="flex flex-col gap-2">
+                  <Link href="/login" className="text-sm px-3 py-2 rounded-md bg-primary text-primary-foreground text-center">
+                    Open App
+                  </Link>
+                  <button onClick={() => scrollToId("roadmap")} className="text-sm px-3 py-2 rounded-md border text-center hover:bg-muted">
+                    View Roadmap
+                  </button>
+                </div>
               </div>
-            </div>
+            </nav>
           </aside>
 
           {/* Content column */}
-          <section className="relative z-10">
+         <section className="relative z-10 w-full max-w-full">
+
             {/* Mobile TOC / quick nav */}
             <div className="md:hidden mb-6">
               <div className="flex items-center justify-between">
@@ -272,7 +271,7 @@ export default function AboutPage() {
             {/* INTRODUCTION */}
             <section
               id="introduction"
-              className="min-h-screen flex flex-col justify-center gap-8"
+              className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-6 sm:gap-8"
               aria-labelledby="intro-heading"
             >
               <motion.div variants={fadeUp} initial="hidden" animate="visible">
@@ -287,7 +286,7 @@ export default function AboutPage() {
               </motion.div>
 
               {/* Metrics */}
-              <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
+              <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
                 <div className="p-6 sm:p-8 rounded-2xl bg-card border text-center">
                   <BarChart2 className="mx-auto mb-3 text-foreground/70" />
                   <div className="text-2xl sm:text-3xl font-bold">{counts.users.toLocaleString()}</div>
@@ -318,7 +317,7 @@ export default function AboutPage() {
             </section>
 
             {/* PROBLEM */}
-            <section id="problem" className="min-h-screen flex flex-col justify-center gap-8">
+            <section id="problem" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
               <motion.div variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">The Problem</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
@@ -357,7 +356,7 @@ export default function AboutPage() {
             </section>
 
             {/* SOLUTION */}
-            <section id="solution" className="min-h-screen flex flex-col justify-center gap-8">
+            <section id="solution" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
               <motion.div variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Our Solution</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
@@ -405,7 +404,7 @@ export default function AboutPage() {
             </section>
 
             {/* TECHNOLOGY */}
-            <section id="technology" className="min-h-screen flex flex-col justify-center gap-8">
+            <section id="technology" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
               <motion.div variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Technology & Architecture</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
@@ -445,7 +444,7 @@ export default function AboutPage() {
             </section>
 
             {/* SECURITY */}
-            <section id="security" className="min-h-screen flex flex-col justify-center gap-8">
+            <section id="security" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
               <motion.div variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Security & Privacy</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
@@ -483,7 +482,7 @@ export default function AboutPage() {
             </section>
 
             {/* VALUES */}
-            <section id="values" className="min-h-screen flex flex-col justify-center gap-8">
+            <section id="values" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
               <motion.div variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Our Values</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
@@ -516,7 +515,7 @@ export default function AboutPage() {
             </section>
 
             {/* ROADMAP */}
-            <section id="roadmap" className="min-h-screen flex flex-col justify-center gap-8">
+            <section id="roadmap" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
               <motion.div variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Product Roadmap</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
@@ -572,7 +571,7 @@ export default function AboutPage() {
             </section>
 
             {/* TEAM */}
-            <section id="team" className="min-h-screen flex flex-col justify-center gap-8">
+            <section id="team" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
               <motion.div variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Founders & Team</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
@@ -580,7 +579,7 @@ export default function AboutPage() {
                 </p>
               </motion.div>
 
-              <motion.div variants={fadeUp} className="grid md:grid-cols-3 gap-6 mt-6">
+              <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
                 <div className="p-6 rounded-lg bg-card border text-center">
                   <div className="h-24 w-24 rounded-full bg-muted mx-auto mb-3" />
                   <h4 className="font-semibold">Founder</h4>
@@ -602,31 +601,41 @@ export default function AboutPage() {
             </section>
 
             {/* CTA / GET STARTED */}
-            <section id="cta" className="min-h-screen flex flex-col justify-center gap-8 items-center text-center border-t pt-12">
+            <section id="cta" className="min-h-[50vh] flex flex-col justify-center gap-6 items-center text-center border-t pt-12">
               <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl font-semibold">Ready to try Smart Bookmark?</motion.h2>
               <motion.p variants={fadeUp} className="text-muted-foreground max-w-xl">
                 Sign up with Google and start organizing your web immediately. Free forever plan available.
               </motion.p>
 
-              <motion.div variants={fadeUp} className="flex gap-3 mt-4 flex-wrap justify-center">
-                <Link href="/login" className="px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium">
+              <motion.div variants={fadeUp} className="flex gap-3 mt-4 flex-wrap justify-center w-full sm:w-auto">
+                <Link href="/login" className="px-6 py-3 w-full sm:w-auto rounded-lg bg-primary text-primary-foreground font-medium text-center">
                   Get Started — Free
                 </Link>
 
-                <a href="#roadmap" onClick={(e) => { e.preventDefault(); scrollToId("roadmap") }} className="px-6 py-3 rounded-lg border hover:bg-muted">
+                <button
+                  onClick={() => scrollToId("roadmap")}
+                  className="px-6 py-3 w-full sm:w-auto rounded-lg border hover:bg-muted"
+                >
                   View Roadmap
-                </a>
+                </button>
               </motion.div>
 
               <motion.p variants={fadeUp} className="text-sm text-muted-foreground mt-6 max-w-2xl">
-                Questions? Reach us at <a className="underline" href="mailto:support@smartbookmark.app">support@smartbookmark.app</a>.
+                Questions? Reach us at{" "}
+                <a className="underline" href="mailto:support@smartbookmark.app">
+                  support@smartbookmark.app
+                </a>
+                .
               </motion.p>
             </section>
           </section>
         </div>
       </main>
 
-      <Footer />
+      {/* footer in full-width wrapper so it's never constrained by max-w above */}
+      <div className="w-full">
+        <Footer />
+      </div>
     </div>
   )
 }

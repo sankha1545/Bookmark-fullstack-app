@@ -14,13 +14,12 @@ export default function ConfirmLogoutModal({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
 
-      {/* Backdrop */}
+    
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onCancel}
       />
 
-      {/* Modal Card */}
       <div className="relative bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 space-y-6">
 
         <div>

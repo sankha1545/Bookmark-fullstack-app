@@ -11,7 +11,7 @@ export default function SecuritySection() {
       id="security"
       className="relative py-32 px-6 overflow-hidden"
     >
-      {/* Soft Background Accent */}
+      
       <div className="absolute left-[-200px] top-20 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl" />
 
       <motion.div
@@ -21,7 +21,7 @@ export default function SecuritySection() {
         viewport={{ once: true }}
         className="relative z-10 max-w-6xl mx-auto space-y-20"
       >
-        {/* Section Heading */}
+       
         <motion.div
           variants={fadeUp}
           className="text-center max-w-3xl mx-auto space-y-6"
@@ -40,10 +40,10 @@ export default function SecuritySection() {
           </p>
         </motion.div>
 
-        {/* Main Two Columns */}
+        
         <div className="grid md:grid-cols-2 gap-16 items-start">
 
-          {/* Security Column */}
+       
           <motion.div
             variants={fadeUp}
             className="space-y-6"
@@ -77,7 +77,7 @@ export default function SecuritySection() {
             </ul>
           </motion.div>
 
-          {/* Freedom Column */}
+         
           <motion.div
             variants={fadeUp}
             className="space-y-6"
@@ -112,7 +112,7 @@ export default function SecuritySection() {
           </motion.div>
         </div>
 
-        {/* Feature Cards Grid */}
+       
         <motion.div
           variants={staggerContainer}
           className="grid md:grid-cols-3 gap-8 pt-12"
@@ -149,7 +149,7 @@ export default function SecuritySection() {
           ))}
         </motion.div>
 
-        {/* CTA */}
+       
         <motion.div
           variants={fadeUp}
           className="text-center pt-8"

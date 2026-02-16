@@ -2,14 +2,14 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import UserProfileClient from "@/src/app/(protected)/users/[id]/UserProfileClient"
 
-// 🔥 Mock modal (avoid Radix issues)
+
 jest.mock("@/src/app/(protected)/users/[id]/BookmarkModal", () => ({
   __esModule: true,
   default: ({ bookmark }: any) =>
     bookmark ? <div data-testid="bookmark-modal">Modal Open</div> : null,
 }))
 
-// 🔥 Mock filters (we test logic, not UI internals)
+
 jest.mock("@/src/app/(protected)/users/[id]/BookmarkFilters", () => ({
   __esModule: true,
   default: ({ setSearch }: any) => (

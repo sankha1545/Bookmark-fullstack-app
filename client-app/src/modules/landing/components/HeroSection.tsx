@@ -10,7 +10,7 @@ export default function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center justify-center text-center px-6 overflow-hidden">
 
-      {/* Background Abstract Gradient */}
+     
       <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
       <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
@@ -20,7 +20,7 @@ export default function HeroSection() {
         animate="visible"
         className="relative z-10 max-w-5xl space-y-10"
       >
-        {/* Headline */}
+       
         <motion.h1
           variants={fadeUp}
           className="text-5xl md:text-6xl font-bold leading-tight tracking-tight"
@@ -31,7 +31,7 @@ export default function HeroSection() {
           </span>
         </motion.h1>
 
-        {/* Subheadline */}
+       
         <motion.p
           variants={fadeUp}
           className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto"
@@ -41,7 +41,7 @@ export default function HeroSection() {
           and cloud-powered reliability — all in one simple interface.
         </motion.p>
 
-        {/* Feature Badges */}
+       
         <motion.div
           variants={fadeUp}
           className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground"
@@ -87,7 +87,7 @@ export default function HeroSection() {
           </Link>
         </motion.div>
 
-        {/* Trust Indicator */}
+        
         <motion.div
           variants={fadeUp}
           className="pt-6 text-sm text-muted-foreground"
@@ -95,7 +95,7 @@ export default function HeroSection() {
           No credit card required · Free forever plan · Built with Next.js & Supabase
         </motion.div>
 
-        {/* Scroll Hint */}
+        
         <motion.div
           variants={fadeUp}
           className="pt-12 text-xs text-muted-foreground animate-bounce"

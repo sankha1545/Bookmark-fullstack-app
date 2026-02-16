@@ -20,14 +20,10 @@ export default function BookmarkCard({
   onDelete,
   onToggleFavourite,
 }: Props) {
-  /* ==============================
-     FORMAT DATE
-  ============================== */
+ 
   const formattedDate = format(new Date(bookmark.created_at), "PPP p")
 
-  /* ==============================
-     EXTRACT DOMAIN FOR FAVICON
-  ============================== */
+ 
   const domain = useMemo(() => {
     try {
       return new URL(bookmark.url).hostname
@@ -47,12 +43,11 @@ export default function BookmarkCard({
       aria-labelledby={`bookmark-title-${bookmark.id}`}
       className="group relative bg-white dark:bg-card p-4 sm:p-6 rounded-2xl border shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col gap-3 sm:gap-4"
     >
-      {/* Top row: Title + favicon + favourite (desktop layout uses same order) */}
-      <div className="flex items-start gap-3 sm:gap-4">
-        {/* favicon */}
+            <div className="flex items-start gap-3 sm:gap-4">
+      
         <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-muted/20 dark:bg-muted/10 flex items-center justify-center overflow-hidden border">
           {faviconUrl && !faviconError ? (
-            // plain img is fine here — keep src small
+            
             <img
               src={faviconUrl}
               alt={`${domain || "favicon"}`}
@@ -64,7 +59,7 @@ export default function BookmarkCard({
           )}
         </div>
 
-        {/* Title + URL */}
+
         <div className="min-w-0 flex-1">
           <h3
             id={`bookmark-title-${bookmark.id}`}
@@ -88,7 +83,7 @@ export default function BookmarkCard({
           </a>
         </div>
 
-        {/* Favourite toggle (right aligned) */}
+       
         <div className="flex-shrink-0 ml-2">
           <button
             onClick={onToggleFavourite}
@@ -109,14 +104,14 @@ export default function BookmarkCard({
         </div>
       </div>
 
-      {/* Meta row: date + tags (stacked on small screens) */}
+      
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Calendar size={14} />
           <span>{formattedDate}</span>
         </div>
 
-        {/* Tags */}
+      
         {bookmark.tags && bookmark.tags.length > 0 && (
           <div className="mt-2 sm:mt-0 flex flex-wrap gap-2">
             {bookmark.tags.map((tag, idx) => (
@@ -131,7 +126,7 @@ export default function BookmarkCard({
         )}
       </div>
 
-      {/* Note */}
+  
       {bookmark.note && (
         <p
           className="mt-2 text-sm text-muted-foreground leading-relaxed line-clamp-2"
@@ -141,12 +136,12 @@ export default function BookmarkCard({
         </p>
       )}
 
-      {/* Actions */}
+     
       <div className="mt-3 flex items-center justify-between gap-3">
-        {/* Left side (empty for now, reserved) */}
+      
         <div />
 
-        {/* Buttons: visible on touch by default, on desktop show on hover */}
+       
         <div className="flex items-center gap-2 ml-auto opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition">
           <Button
             size="sm"

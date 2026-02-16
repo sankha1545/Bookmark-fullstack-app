@@ -12,7 +12,7 @@ export default function CTASection() {
       id="cta"
       className="relative py-32 px-6 overflow-hidden bg-primary text-primary-foreground"
     >
-      {/* Background Glow Effects */}
+     
       <div className="absolute left-[-200px] top-10 w-[500px] h-[500px] bg-white/10 rounded-full blur-3xl" />
       <div className="absolute right-[-200px] bottom-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-3xl" />
 
@@ -23,7 +23,7 @@ export default function CTASection() {
         viewport={{ once: true }}
         className="relative z-10 max-w-4xl mx-auto text-center space-y-10"
       >
-        {/* Headline */}
+        
         <div className="space-y-6">
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
             Start Organizing Smarter Today
@@ -36,7 +36,6 @@ export default function CTASection() {
           </p>
         </div>
 
-        {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row justify-center gap-6">
           <Link href="/login">
             <Button

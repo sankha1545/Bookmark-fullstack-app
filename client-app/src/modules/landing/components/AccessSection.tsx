@@ -19,7 +19,7 @@ export default function AccessSection() {
       id="access"
       className="relative py-32 px-6 bg-muted/30 overflow-hidden"
     >
-      {/* Soft background accent */}
+      
       <div className="absolute right-[-200px] top-20 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-3xl" />
 
       <motion.div
@@ -29,7 +29,7 @@ export default function AccessSection() {
         viewport={{ once: true }}
         className="relative z-10 max-w-6xl mx-auto space-y-20"
       >
-        {/* Section Intro */}
+        
         <motion.div
           variants={fadeUp}
           className="text-center max-w-3xl mx-auto space-y-6"
@@ -48,10 +48,10 @@ export default function AccessSection() {
           </p>
         </motion.div>
 
-        {/* Two Column Feature Breakdown */}
+      
         <div className="grid md:grid-cols-2 gap-16 items-start">
 
-          {/* Left Column */}
+        
           <motion.div variants={fadeUp} className="space-y-6">
             <h3 className="text-2xl font-semibold">
               Real-Time Multi-Device Sync
@@ -79,7 +79,7 @@ export default function AccessSection() {
             </ul>
           </motion.div>
 
-          {/* Right Column */}
+          
           <motion.div variants={fadeUp} className="space-y-6">
             <h3 className="text-2xl font-semibold">
               Browser & Device Agnostic
@@ -107,7 +107,7 @@ export default function AccessSection() {
           </motion.div>
         </div>
 
-        {/* Compatibility Cards */}
+      
         <motion.div
           variants={staggerContainer}
           className="grid md:grid-cols-3 gap-8 pt-12"
@@ -150,7 +150,7 @@ export default function AccessSection() {
           ))}
         </motion.div>
 
-        {/* Trust Indicator */}
+        
         <motion.div
           variants={fadeUp}
           className="text-center pt-8 space-y-4"

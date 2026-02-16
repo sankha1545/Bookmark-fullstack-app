@@ -66,17 +66,15 @@ export default function ProfileModal({
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
   const hasAutoFocused = useRef(false);
 
-  /* =========================================================
-     Handle Initial Focus (STRICT MODE SAFE)
-  ========================================================= */
+  
   useEffect(() => {
     if (!open) return;
 
-    // Save previously focused element
+   
     previouslyFocusedElement.current =
       document.activeElement as HTMLElement;
 
-    // Prevent double focus in React StrictMode
+   
     if (!hasAutoFocused.current) {
       requestAnimationFrame(() => {
         firstInputRef.current?.focus();
@@ -92,9 +90,7 @@ export default function ProfileModal({
     };
   }, [open]);
 
-  /* =========================================================
-     ESC Key Close
-  ========================================================= */
+  
   useEffect(() => {
     if (!open) return;
 
@@ -109,9 +105,6 @@ export default function ProfileModal({
     return () => window.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  /* =========================================================
-     Scroll Lock (No Layout Shift)
-  ========================================================= */
   useEffect(() => {
     if (!open) return;
 
@@ -123,7 +116,7 @@ export default function ProfileModal({
 
     document.body.style.overflow = "hidden";
 
-    // Prevent layout shift when scrollbar disappears
+    
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
@@ -196,7 +189,7 @@ export default function ProfileModal({
 
           {/* ========================= Body ========================= */}
           <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Display Name */}
+         
             <div className="space-y-2">
               <Label htmlFor="displayName">Display Name</Label>
               <Input
@@ -208,13 +201,13 @@ export default function ProfileModal({
               />
             </div>
 
-            {/* Email */}
+           
             <div className="space-y-2">
               <Label>Email</Label>
               <Input value={email} disabled />
             </div>
 
-            {/* Country */}
+        
             <div className="space-y-2">
               <Label>Country</Label>
               <Select
@@ -240,7 +233,7 @@ export default function ProfileModal({
               </Select>
             </div>
 
-            {/* State */}
+          
             <div className="space-y-2">
               <Label>State / Region</Label>
               {statesLoading ? (
@@ -266,7 +259,7 @@ export default function ProfileModal({
               )}
             </div>
 
-            {/* Dial Code */}
+           
             <div className="space-y-2">
               <Label>Dial Code</Label>
               <Select
@@ -286,7 +279,7 @@ export default function ProfileModal({
               </Select>
             </div>
 
-            {/* Phone */}
+          
             <div className="space-y-2 md:col-span-2">
               <Label>Phone</Label>
               <Input

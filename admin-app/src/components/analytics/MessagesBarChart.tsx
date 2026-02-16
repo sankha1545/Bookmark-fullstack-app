@@ -29,9 +29,7 @@ export default function BookmarksLineChart({ data }: Props) {
   const [view, setView] = useState<ViewMode>("daily")
   const [dailyRange, setDailyRange] = useState<DailyRange>(7)
 
-  /* =====================================
-     FILTER + GROUPING LOGIC (UNCHANGED)
-  ===================================== */
+
 
   const filteredData = useMemo(() => {
     if (!data || data.length === 0) return []
@@ -91,9 +89,7 @@ export default function BookmarksLineChart({ data }: Props) {
     return sorted
   }, [data, view, dailyRange])
 
-  /* =====================================
-     DATE LABEL FORMATTER
-  ===================================== */
+
 
   const formatXAxis = (value: string) => {
     if (view === "daily") {
@@ -109,15 +105,11 @@ export default function BookmarksLineChart({ data }: Props) {
     return value
   }
 
-  /* =====================================
-     RESPONSIVE HEIGHT
-  ===================================== */
+ 
 
   const chartHeight = 280
 
-  /* =====================================
-     RENDER
-  ===================================== */
+ 
 
   return (
     <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm space-y-6 w-full">

@@ -1,9 +1,8 @@
-// src/lib/supabase/server.ts
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
 export async function createClient() {
-  const cookieStore = await cookies() // ✅ MUST await in Next 16
+  const cookieStore = await cookies() 
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +13,7 @@ export async function createClient() {
           return cookieStore.get(name)?.value
         },
 
-        // 🚫 No cookie mutation in Server Components
+        
         set() {},
         remove() {},
       },

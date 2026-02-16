@@ -12,9 +12,7 @@ export default function AdminShell({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  /* ===============================
-     Lock body scroll when open
-  =============================== */
+
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden"
@@ -27,9 +25,7 @@ export default function AdminShell({
     }
   }, [mobileOpen])
 
-  /* ===============================
-     Close on ESC
-  =============================== */
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -44,16 +40,15 @@ export default function AdminShell({
   return (
     <div className="relative flex min-h-screen w-full bg-background">
 
-      {/* ================= Desktop Sidebar ================= */}
+   
       <div className="hidden lg:flex lg:w-72 flex-shrink-0 border-r bg-background">
         <Sidebar />
       </div>
 
-      {/* ================= Mobile Sidebar ================= */}
       <AnimatePresence>
         {mobileOpen && (
           <>
-            {/* Overlay */}
+           
             <motion.div
               key="overlay"
               initial={{ opacity: 0 }}
@@ -79,7 +74,7 @@ export default function AdminShell({
         )}
       </AnimatePresence>
 
-      {/* ================= Main Area ================= */}
+     
       <div className="flex flex-1 flex-col min-w-0">
 
         {/* Topbar */}

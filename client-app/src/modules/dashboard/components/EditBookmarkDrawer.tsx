@@ -19,28 +19,24 @@ export default function EditBookmarkDrawer({
 }: Props) {
   const [title, setTitle] = useState("")
   const [url, setUrl] = useState("")
-  const [tags, setTags] = useState("") // ✅ FIXED: restored
+  const [tags, setTags] = useState("") 
   const [note, setNote] = useState("")
   const [description, setDescription] = useState("")
   const [loading, setLoading] = useState(false)
 
-  /* ================================
-     LOAD EXISTING DATA
-  ================================= */
+
 
   useEffect(() => {
     if (bookmark) {
       setTitle(bookmark.title || "")
       setUrl(bookmark.url || "")
-      setTags(bookmark.tags?.join(", ") || "") // ✅ restored
+      setTags(bookmark.tags?.join(", ") || "") 
       setNote(bookmark.note || "")
       setDescription(bookmark.description || "")
     }
   }, [bookmark])
 
-  /* ================================
-     UPDATE BOOKMARK
-  ================================= */
+
 
   async function handleUpdate() {
     if (!bookmark?.id) return
@@ -58,7 +54,7 @@ export default function EditBookmarkDrawer({
     }
 
     try {
-      // ✅ Clean tags safely
+      
       const cleanedTags =
         tags.trim().length > 0
           ? tags
@@ -67,7 +63,7 @@ export default function EditBookmarkDrawer({
               .filter(Boolean)
           : []
 
-      /* 1️⃣ Update bookmark */
+    
       const { error: bookmarkError } = await supabase
         .from("bookmarks")
         .update({
@@ -82,7 +78,7 @@ export default function EditBookmarkDrawer({
 
       if (bookmarkError) throw bookmarkError
 
-      /* 2️⃣ Delete old relations */
+ 
       const { error: deleteError } = await supabase
         .from("bookmark_tags")
         .delete()
@@ -90,10 +86,10 @@ export default function EditBookmarkDrawer({
 
       if (deleteError) throw deleteError
 
-      /* 3️⃣ Insert tags + relations */
+      
       if (cleanedTags.length > 0) {
         for (const tagName of cleanedTags) {
-          // Upsert tag (avoids duplicates)
+         
           const { data: tagData, error: tagError } = await supabase
             .from("tags")
             .upsert(
@@ -105,7 +101,7 @@ export default function EditBookmarkDrawer({
 
           if (tagError) throw tagError
 
-          // Insert relation
+       
           const { error: relationError } = await supabase
             .from("bookmark_tags")
             .insert({
@@ -128,20 +124,18 @@ export default function EditBookmarkDrawer({
     }
   }
 
-  /* ================================
-     UI
-  ================================= */
+
 
   return (
     <div className="fixed inset-0 z-50 flex">
 
-      {/* Backdrop */}
+    
       <div
         className="flex-1 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Drawer */}
+   
       <div className="w-full max-w-md bg-white dark:bg-neutral-950 p-6 shadow-2xl overflow-auto">
 
         <div className="flex justify-between items-center mb-6">
@@ -155,7 +149,7 @@ export default function EditBookmarkDrawer({
 
         <div className="space-y-4">
 
-          {/* Title */}
+        
           <div>
             <label className="text-sm font-medium">Title</label>
             <Input
@@ -164,7 +158,7 @@ export default function EditBookmarkDrawer({
             />
           </div>
 
-          {/* URL */}
+       
           <div>
             <label className="text-sm font-medium">URL</label>
             <Input
@@ -173,7 +167,7 @@ export default function EditBookmarkDrawer({
             />
           </div>
 
-          {/* Tags */}
+     
           <div>
             <label className="text-sm font-medium">
               Tags (comma separated)
@@ -185,7 +179,7 @@ export default function EditBookmarkDrawer({
             />
           </div>
 
-          {/* Note */}
+         
           <div>
             <label className="text-sm font-medium">Note</label>
             <textarea
@@ -196,7 +190,7 @@ export default function EditBookmarkDrawer({
             />
           </div>
 
-          {/* Description */}
+        
           <div>
             <label className="text-sm font-medium">Description</label>
             <textarea
@@ -207,7 +201,7 @@ export default function EditBookmarkDrawer({
             />
           </div>
 
-          {/* Save Button */}
+       
           <Button
             onClick={handleUpdate}
             disabled={loading}

@@ -1,9 +1,6 @@
 import type { Variants } from "framer-motion"
 
-/**
- * Use proper cubic-bezier tuple instead of string easing.
- * This satisfies Framer Motion v11 strict types.
- */
+
 
 const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1]
 

@@ -4,12 +4,7 @@ import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X, AlertTriangle } from "lucide-react";
 
-/**
- * ConfirmDialog
- * - Simple, reusable confirmation modal for destructive actions.
- * - Props:
- *    title, description, confirmLabel, cancelLabel, onConfirm, onCancel, loading
- */
+
 
 export default function ConfirmDialog({
   title = "Are you sure?",

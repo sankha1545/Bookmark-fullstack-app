@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react"
 import DashboardPage from "../page"
 
-// ✅ Mock Supabase
+
 jest.mock("@/lib/supabase/client", () => {
   return {
     supabase: {
@@ -60,7 +60,7 @@ jest.mock("@/lib/supabase/client", () => {
   }
 })
 
-// ✅ Optional: Silence act warnings cleanly
+
 beforeAll(() => {
   jest.spyOn(console, "error").mockImplementation((msg) => {
     if (

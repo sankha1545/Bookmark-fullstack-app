@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import UsersFilters from "@/src/app/(protected)/users/UsersFilters"
 
-// 🔥 Mock Radix Select completely
+
 jest.mock("@/src/components/ui/select", () => ({
   Select: ({ children, onValueChange }: any) => (
     <div>
