@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv } from "@/components/motion/motion"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -37,14 +37,14 @@ export default function CookiesPage() {
       <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
       <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
-      <motion.div
+      <MotionDiv
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
         className="relative z-10 max-w-5xl mx-auto space-y-16"
       >
         {/* Header */}
-        <motion.div variants={fadeUp} className="text-center space-y-6">
+        <MotionDiv variants={fadeUp} className="text-center space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
             Cookies Policy
             <span className="block text-primary mt-3">
@@ -75,10 +75,10 @@ export default function CookiesPage() {
           <p className="text-sm text-muted-foreground pt-4">
             <strong>Last Updated:</strong> January 2026
           </p>
-        </motion.div>
+        </MotionDiv>
 
        
-        <motion.div variants={fadeUp} className="space-y-14 text-muted-foreground leading-relaxed">
+        <MotionDiv variants={fadeUp} className="space-y-14 text-muted-foreground leading-relaxed">
 
           
           <section>
@@ -246,10 +246,10 @@ export default function CookiesPage() {
             </p>
           </section>
 
-        </motion.div>
+        </MotionDiv>
 
         {/* CTA Section */}
-        <motion.div
+        <MotionDiv
           variants={fadeUp}
           className="pt-16 text-center space-y-6"
         >
@@ -274,9 +274,9 @@ export default function CookiesPage() {
           <p className="text-xs text-muted-foreground pt-4">
             No tracking ads · Privacy-first design · Built with Next.js & Supabase
           </p>
-        </motion.div>
+        </MotionDiv>
 
-      </motion.div>
+      </MotionDiv>
     <br/>
       <Footer />
     </section>

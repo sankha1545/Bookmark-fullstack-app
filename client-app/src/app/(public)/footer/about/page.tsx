@@ -16,6 +16,15 @@ import {
 } from "lucide-react"
 import Navbar from "@/modules/landing/components/LandingNavbar"
 import Footer from "@/modules/landing/components/Footer"
+import {
+  MotionUl,
+  MotionLi,
+  MotionDiv,
+  MotionSection,
+  MotionH2,
+  MotionP,
+  MotionOl,
+} from "@/components/motion/motion"
 
 const sections = [
   { id: "introduction", label: "Introduction" },
@@ -201,9 +210,12 @@ export default function AboutPage() {
           {/* Desktop TOC */}
           <aside className="hidden md:block sticky top-20 self-start h-[calc(100vh-6rem)] overflow-y-auto">
             <nav aria-label="On page navigation" className="space-y-6 px-1">
-              <motion.ul initial="hidden" animate="visible" variants={staggerContainer} className="space-y-3">
+              <MotionUl
+ initial="hidden" animate="visible" variants={staggerContainer} className="space-y-3">
                 {sections.map((section) => (
-                  <motion.li key={section.id} variants={fadeUp}>
+                  <MotionLi
+
+ key={section.id} variants={fadeUp}>
                     <a
                       href={`#${section.id}`}
                       onClick={(e) => {
@@ -219,9 +231,9 @@ export default function AboutPage() {
                     >
                       {section.label}
                     </a>
-                  </motion.li>
+                  </MotionLi>
                 ))}
-              </motion.ul>
+              </MotionUl>
 
               {/* quick action */}
               <div className="mt-6 border rounded-lg p-4 bg-card">
@@ -274,7 +286,9 @@ export default function AboutPage() {
               className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-6 sm:gap-8"
               aria-labelledby="intro-heading"
             >
-              <motion.div variants={fadeUp} initial="hidden" animate="visible">
+              <MotionDiv
+
+ variants={fadeUp} initial="hidden" animate="visible">
                 <h1 id="intro-heading" className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
                   About Smart Bookmark
                 </h1>
@@ -283,10 +297,12 @@ export default function AboutPage() {
                   searchable, and collaborative knowledge layer — syncing instantly across
                   your devices while keeping your data private and secure.
                 </p>
-              </motion.div>
+              </MotionDiv>
 
               {/* Metrics */}
-              <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+              <MotionDiv
+
+ variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
                 <div className="p-6 sm:p-8 rounded-2xl bg-card border text-center">
                   <BarChart2 className="mx-auto mb-3 text-foreground/70" />
                   <div className="text-2xl sm:text-3xl font-bold">{counts.users.toLocaleString()}</div>
@@ -313,12 +329,14 @@ export default function AboutPage() {
                     Fast, reliable synchronization across tabs and devices.
                   </p>
                 </div>
-              </motion.div>
+              </MotionDiv>
             </section>
 
             {/* PROBLEM */}
             <section id="problem" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
-              <motion.div variants={fadeUp}>
+              <MotionDiv
+
+ variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">The Problem</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
                   Browser bookmarks are anachronistic: they belong to a single device, lack
@@ -326,9 +344,11 @@ export default function AboutPage() {
                   organized; individuals lose context when switching devices. These friction
                   points create wasted time and cognitive overload.
                 </p>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.div variants={fadeUp} className="grid md:grid-cols-2 gap-6 mt-6">
+              <MotionDiv
+
+ variants={fadeUp} className="grid md:grid-cols-2 gap-6 mt-6">
                 <div className="p-6 rounded-lg bg-card border">
                   <h3 className="font-semibold mb-3">Scattered Discovery</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -343,21 +363,25 @@ export default function AboutPage() {
                     related resources) needed to understand why it matters.
                   </p>
                 </div>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.div variants={fadeUp} className="mt-6 space-y-3">
+              <MotionDiv
+
+ variants={fadeUp} className="mt-6 space-y-3">
                 <h4 className="font-semibold">Consequences</h4>
                 <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                   <li>Duplicate effort and rediscovery</li>
                   <li>Lost knowledge when people switch teams</li>
                   <li>Context is fragmented and ephemeral</li>
                 </ul>
-              </motion.div>
+              </MotionDiv>
             </section>
 
             {/* SOLUTION */}
             <section id="solution" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
-              <motion.div variants={fadeUp}>
+              <MotionDiv
+
+ variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Our Solution</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
                   We reimagined bookmarks as a lightweight knowledge platform:
@@ -365,9 +389,11 @@ export default function AboutPage() {
                   with metadata, organize them into collections, add notes, and instantly
                   find what they need using full-text search and filters.
                 </p>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.div variants={fadeUp} className="grid md:grid-cols-3 gap-6 mt-6">
+              <MotionDiv
+
+ variants={fadeUp} className="grid md:grid-cols-3 gap-6 mt-6">
                 <div className="p-6 rounded-lg bg-card border">
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
                     <Target /> Find Faster
@@ -394,26 +420,32 @@ export default function AboutPage() {
                     Share collections with teammates, comment, and collaborate in-line.
                   </p>
                 </div>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.div variants={fadeUp} className="mt-6">
+              <MotionDiv
+
+ variants={fadeUp} className="mt-6">
                 <p className="text-muted-foreground">
                   The result: less time spent searching, more time on work that matters.
                 </p>
-              </motion.div>
+              </MotionDiv>
             </section>
 
             {/* TECHNOLOGY */}
             <section id="technology" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
-              <motion.div variants={fadeUp}>
+              <MotionDiv
+
+ variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Technology & Architecture</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
                   Smart Bookmark is built on proven open technologies and modern patterns that
                   enable fast iteration and global scale.
                 </p>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.div variants={fadeUp} className="grid md:grid-cols-3 gap-6 mt-6">
+              <MotionDiv
+
+ variants={fadeUp} className="grid md:grid-cols-3 gap-6 mt-6">
                 <div className="p-6 rounded-lg bg-card border">
                   <h4 className="font-semibold">Next.js (App Router)</h4>
                   <p className="text-sm text-muted-foreground">
@@ -434,25 +466,31 @@ export default function AboutPage() {
                     Containerized deployments, observability, and automated testing ensure stable rollouts.
                   </p>
                 </div>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.div variants={fadeUp} className="mt-6">
+              <MotionDiv
+
+ variants={fadeUp} className="mt-6">
                 <p className="text-sm text-muted-foreground">
                   We design for reliability — gradual rollouts, monitoring, and careful RLS policies are core to our operations.
                 </p>
-              </motion.div>
+              </MotionDiv>
             </section>
 
             {/* SECURITY */}
             <section id="security" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
-              <motion.div variants={fadeUp}>
+              <MotionDiv
+
+ variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Security & Privacy</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
                   Security is non-negotiable. We combine best practices across the stack to keep your data safe.
                 </p>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.div variants={fadeUp} className="grid md:grid-cols-2 gap-6 mt-6">
+              <MotionDiv
+
+ variants={fadeUp} className="grid md:grid-cols-2 gap-6 mt-6">
                 <div className="p-6 rounded-lg bg-card border">
                   <h4 className="font-semibold flex items-center gap-2">
                     <ShieldCheck /> Authentication
@@ -470,27 +508,33 @@ export default function AboutPage() {
                     TLS everywhere, encryption in transit, and RLS policies so rows are only visible to the owner.
                   </p>
                 </div>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.div variants={fadeUp} className="mt-6">
+              <MotionDiv
+
+ variants={fadeUp} className="mt-6">
                 <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                   <li>Regular security audits and dependency scanning</li>
                   <li>Least-privilege access for internal services</li>
                   <li>Detailed logging and rate limiting on sensitive endpoints</li>
                 </ul>
-              </motion.div>
+              </MotionDiv>
             </section>
 
             {/* VALUES */}
             <section id="values" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
-              <motion.div variants={fadeUp}>
+              <MotionDiv
+
+ variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Our Values</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
                   We build with a set of principles that guide product decisions and company culture.
                 </p>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.div variants={fadeUp} className="grid md:grid-cols-3 gap-6 mt-6">
+              <MotionDiv
+
+ variants={fadeUp} className="grid md:grid-cols-3 gap-6 mt-6">
                 <div className="p-6 rounded-lg bg-card border">
                   <h4 className="font-semibold mb-2">Privacy First</h4>
                   <p className="text-sm text-muted-foreground">Design choices that respect user data and ownership.</p>
@@ -505,81 +549,103 @@ export default function AboutPage() {
                   <h4 className="font-semibold mb-2">Reliability</h4>
                   <p className="text-sm text-muted-foreground">Predictable, available, and observable systems.</p>
                 </div>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.div variants={fadeUp} className="mt-6">
+              <MotionDiv
+
+ variants={fadeUp} className="mt-6">
                 <blockquote className="border-l-4 pl-4 text-muted-foreground">
                   “Privacy and utility are not mutually exclusive. We build products that honor both.”
                 </blockquote>
-              </motion.div>
+              </MotionDiv>
             </section>
 
             {/* ROADMAP */}
             <section id="roadmap" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
-              <motion.div variants={fadeUp}>
+              <MotionDiv
+
+ variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Product Roadmap</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
                   A lean, focused roadmap — transparent and outcome-oriented. We share high-level phases so users understand what's coming.
                 </p>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.ol variants={staggerContainer} className="space-y-8 mt-8">
-                {[
-                  {
-                    quarter: "Q1 — Core",
-                    title: "Core Bookmark Engine",
-                    details:
-                      "Robust saving, tagging, full-text search, performant listing, and basic collections.",
-                  },
-                  {
-                    quarter: "Q2 — Sync & UX",
-                    title: "Realtime Sync & UX polish",
-                    details:
-                      "Deep multi-tab sync optimizations, offline resilience, improved mobile UI.",
-                  },
-                  {
-                    quarter: "Q3 — AI & Organization",
-                    title: "AI Categorization & Smart Collections",
-                    details:
-                      "Automatic categorization, suggested tags, smart folders, and bulk actions.",
-                  },
-                  {
-                    quarter: "Q4 — Teams & Extensions",
-                    title: "Team Workspaces & Browser Extension",
-                    details:
-                      "Shared collections, permissions, extension for fast save & annotate, and admin controls.",
-                  },
-                ].map((item, i) => (
-                  <motion.li key={item.quarter} variants={fadeUp} className="relative pl-10">
-                    <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
-                      <Calendar size={14} />
-                    </div>
+             <MotionOl
+  variants={staggerContainer}
+  className="space-y-8 mt-8"
+>
+  {[
+    {
+      quarter: "Q1 — Core",
+      title: "Core Bookmark Engine",
+      details:
+        "Robust saving, tagging, full-text search, performant listing, and basic collections.",
+    },
+    {
+      quarter: "Q2 — Sync & UX",
+      title: "Realtime Sync & UX polish",
+      details:
+        "Deep multi-tab sync optimizations, offline resilience, improved mobile UI.",
+    },
+    {
+      quarter: "Q3 — AI & Organization",
+      title: "AI Categorization & Smart Collections",
+      details:
+        "Automatic categorization, suggested tags, smart folders, and bulk actions.",
+    },
+    {
+      quarter: "Q4 — Teams & Extensions",
+      title: "Team Workspaces & Browser Extension",
+      details:
+        "Shared collections, permissions, extension for fast save & annotate, and admin controls.",
+    },
+  ].map((item, i) => (
+    <MotionLi
+      key={item.quarter}
+      variants={fadeUp}
+      className="relative pl-10"
+    >
+      <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white">
+        <Calendar size={14} />
+      </div>
 
-                    <h3 className="font-semibold">{item.quarter} — {item.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-2 max-w-3xl">{item.details}</p>
+      <h3 className="font-semibold">
+        {item.quarter} — {item.title}
+      </h3>
 
-                    <div className="mt-3">
-                      <ul className="list-disc pl-6 text-sm text-muted-foreground space-y-1">
-                        <li>Deliverable: {i + 1}.0 — engineering milestones</li>
-                        <li>Beta: invite-only testing with power users</li>
-                        <li>Feedback loop: in-app feedback & surveys</li>
-                      </ul>
-                    </div>
-                  </motion.li>
-                ))}
-              </motion.ol>
+      <p className="text-sm text-muted-foreground mt-2 max-w-3xl">
+        {item.details}
+      </p>
+
+      <div className="mt-3">
+        <ul className="list-disc pl-6 text-sm text-muted-foreground space-y-1">
+          <li>Deliverable: {i + 1}.0 — engineering milestones</li>
+          <li>Beta: invite-only testing with power users</li>
+          <li>Feedback loop: in-app feedback & surveys</li>
+        </ul>
+      </div>
+
+    </MotionLi>
+  ))}
+</MotionOl>
+
             </section>
 
             {/* TEAM */}
             <section id="team" className="min-h-[60vh] md:min-h-[80vh] flex flex-col justify-center gap-8">
-              <motion.div variants={fadeUp}>
+              <MotionDiv
+
+ variants={fadeUp}>
                 <h2 className="text-2xl sm:text-3xl font-semibold">Founders & Team</h2>
                 <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed">
                   Small, experienced team focused on product and reliability. We iterate quickly and ship carefully.
                 </p>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+              <MotionDiv
+
+ variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
                 <div className="p-6 rounded-lg bg-card border text-center">
                   <div className="h-24 w-24 rounded-full bg-muted mx-auto mb-3" />
                   <h4 className="font-semibold">Founder</h4>
@@ -597,17 +663,19 @@ export default function AboutPage() {
                   <h4 className="font-semibold">Design</h4>
                   <p className="text-sm text-muted-foreground">UX, visual systems, and product polish.</p>
                 </div>
-              </motion.div>
+              </MotionDiv>
             </section>
 
             {/* CTA / GET STARTED */}
             <section id="cta" className="min-h-[50vh] flex flex-col justify-center gap-6 items-center text-center border-t pt-12">
-              <motion.h2 variants={fadeUp} className="text-2xl sm:text-3xl font-semibold">Ready to try Smart Bookmark?</motion.h2>
-              <motion.p variants={fadeUp} className="text-muted-foreground max-w-xl">
+              <MotionH2 variants={fadeUp} className="text-2xl sm:text-3xl font-semibold">Ready to try Smart Bookmark?</MotionH2>
+              <MotionP variants={fadeUp} className="text-muted-foreground max-w-xl">
                 Sign up with Google and start organizing your web immediately. Free forever plan available.
-              </motion.p>
+              </MotionP>
 
-              <motion.div variants={fadeUp} className="flex gap-3 mt-4 flex-wrap justify-center w-full sm:w-auto">
+              <MotionDiv
+
+ variants={fadeUp} className="flex gap-3 mt-4 flex-wrap justify-center w-full sm:w-auto">
                 <Link href="/login" className="px-6 py-3 w-full sm:w-auto rounded-lg bg-primary text-primary-foreground font-medium text-center">
                   Get Started — Free
                 </Link>
@@ -618,15 +686,15 @@ export default function AboutPage() {
                 >
                   View Roadmap
                 </button>
-              </motion.div>
+              </MotionDiv>
 
-              <motion.p variants={fadeUp} className="text-sm text-muted-foreground mt-6 max-w-2xl">
+              <MotionP variants={fadeUp} className="text-sm text-muted-foreground mt-6 max-w-2xl">
                 Questions? Reach us at{" "}
                 <a className="underline" href="mailto:support@smartbookmark.app">
                   support@smartbookmark.app
                 </a>
                 .
-              </motion.p>
+              </MotionP>
             </section>
           </section>
         </div>

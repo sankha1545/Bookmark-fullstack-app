@@ -1,4 +1,5 @@
 "use client"
+import { MotionDiv } from "@/components/motion/motion"
 
 import { motion } from "framer-motion"
 import Link from "next/link"
@@ -36,14 +37,14 @@ export default function SecurityPage() {
       <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
       <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
-      <motion.div
+      <MotionDiv
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
         className="relative z-10 max-w-5xl mx-auto space-y-16"
       >
       
-        <motion.div variants={fadeUp} className="text-center space-y-6">
+        <MotionDiv variants={fadeUp} className="text-center space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
             Enterprise-Grade
             <span className="block text-primary mt-3">
@@ -72,10 +73,10 @@ export default function SecurityPage() {
               Secure Cloud Hosting
             </span>
           </div>
-        </motion.div>
+        </MotionDiv>
 
         
-        <motion.div variants={fadeUp} className="space-y-12">
+        <MotionDiv variants={fadeUp} className="space-y-12">
 
        
           <div>
@@ -147,10 +148,10 @@ export default function SecurityPage() {
             </p>
           </div>
 
-        </motion.div>
+        </MotionDiv>
 
         {/* CTA Section */}
-        <motion.div
+        <MotionDiv
           variants={fadeUp}
           className="pt-16 text-center space-y-6"
         >
@@ -175,9 +176,9 @@ export default function SecurityPage() {
           <p className="text-xs text-muted-foreground pt-4">
             Built with Next.js · Supabase · Secure Cloud Infrastructure
           </p>
-        </motion.div>
+        </MotionDiv>
 
-      </motion.div>
+      </MotionDiv>
       <br/>
       <Footer />
     </section>

@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv } from "@/components/motion/motion"
 import { motion } from "framer-motion"
 import { fadeUp, staggerContainer } from "../animations"
 import { ShieldCheck, Infinity, Lock, Cloud, Zap } from "lucide-react"
@@ -18,7 +18,7 @@ export default function SecuritySection() {
       >
         <div className="absolute left-[-200px] top-20 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl" />
 
-        <motion.div
+        <MotionDiv
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
@@ -26,7 +26,7 @@ export default function SecuritySection() {
           className="relative z-10 max-w-6xl mx-auto space-y-20"
         >
           {/* HEADER */}
-          <motion.div
+          <MotionDiv
             variants={fadeUp}
             className="text-center max-w-3xl mx-auto space-y-6"
           >
@@ -42,12 +42,12 @@ export default function SecuritySection() {
               infrastructure while remaining simple, fast,
               and completely free to use.
             </p>
-          </motion.div>
+          </MotionDiv>
 
           {/* GRID */}
           <div className="grid md:grid-cols-2 gap-16 items-start">
 
-            <motion.div variants={fadeUp} className="space-y-6">
+            <MotionDiv variants={fadeUp} className="space-y-6">
               <div className="flex items-center gap-3">
                 <ShieldCheck className="text-primary" />
                 <h3 className="text-2xl font-semibold">
@@ -74,9 +74,9 @@ export default function SecuritySection() {
                   Row-level security enforcement
                 </li>
               </ul>
-            </motion.div>
+            </MotionDiv>
 
-            <motion.div variants={fadeUp} className="space-y-6">
+            <MotionDiv variants={fadeUp} className="space-y-6">
               <div className="flex items-center gap-3">
                 <Infinity className="text-primary" />
                 <h3 className="text-2xl font-semibold">
@@ -102,12 +102,12 @@ export default function SecuritySection() {
                   Unlimited bookmarks forever
                 </li>
               </ul>
-            </motion.div>
+            </MotionDiv>
 
           </div>
 
           {/* FEATURE CARDS */}
-          <motion.div
+          <MotionDiv
             variants={staggerContainer}
             className="grid md:grid-cols-3 gap-8 pt-12"
           >
@@ -128,7 +128,7 @@ export default function SecuritySection() {
                   "Built with Next.js App Router and scalable cloud services.",
               },
             ].map((feature) => (
-              <motion.div
+              <MotionDiv
                 key={feature.title}
                 variants={fadeUp}
                 className="p-6 rounded-xl border bg-card shadow-sm hover:shadow-md transition"
@@ -139,17 +139,17 @@ export default function SecuritySection() {
                 <p className="text-sm text-muted-foreground">
                   {feature.description}
                 </p>
-              </motion.div>
+              </MotionDiv>
             ))}
-          </motion.div>
+          </MotionDiv>
 
           {/* CTA */}
-          <motion.div variants={fadeUp} className="text-center pt-8">
+          <MotionDiv variants={fadeUp} className="text-center pt-8">
             <Button size="lg" onClick={() => setShowTutorial(true)}>
               Explore Features
             </Button>
-          </motion.div>
-        </motion.div>
+          </MotionDiv>
+        </MotionDiv>
       </section>
 
       <TutorialOverlay

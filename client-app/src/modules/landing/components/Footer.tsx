@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv } from "@/components/motion/motion"
 import React, { useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -34,7 +34,7 @@ export default function FooterSection() {
   return (
     <footer role="contentinfo" className="w-full border-t bg-muted/40 py-12 sm:py-16">
       {/* Outer animation wrapper is full width */}
-      <motion.div
+      <MotionDiv
         variants={fadeUp}
         initial="hidden"
         whileInView="visible"
@@ -152,7 +152,7 @@ export default function FooterSection() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </MotionDiv>
     </footer>
   )
 }

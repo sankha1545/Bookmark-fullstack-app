@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv } from "@/components/motion/motion"
 import React, { useMemo, useState } from "react"
 import { motion } from "framer-motion"
 import { Calendar, Eye, Pencil, Trash2, Globe } from "lucide-react"
@@ -72,7 +72,7 @@ function HeadlineRow({
 
  
   return (
-    <motion.div
+    <MotionDiv
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
@@ -153,6 +153,6 @@ function HeadlineRow({
           <span className="sr-only">Delete</span>
         </Button>
       </div>
-    </motion.div>
+    </MotionDiv>
   )
 }

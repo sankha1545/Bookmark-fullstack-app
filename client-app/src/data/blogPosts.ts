@@ -1,16 +1,34 @@
 export type BlogPost = {
+
   slug: string
   title: string
   description: string
   tag: string
   date: string
   cover: string
+
+
   content: {
+
     heading: string
-    paragraphs: string[]
+
+    paragraphs?: string[]
+
     image?: string
+
+
+    table?: {            // ✅ CORRECT LOCATION (inside content)
+
+      headers: string[]
+
+      rows: string[][]
+
+    }
+
   }[]
+
 }
+
 
 export const blogPosts: BlogPost[] = [
   {

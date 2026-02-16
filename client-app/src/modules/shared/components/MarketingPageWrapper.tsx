@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv } from "@/components/motion/motion"
 import { motion } from "framer-motion"
 import { fadeUp } from "@/modules/landing/animations"
 
@@ -14,7 +14,7 @@ export default function MarketingPageWrapper({
 }) {
   return (
     <div className="min-h-screen px-6 py-24 max-w-4xl mx-auto">
-      <motion.div
+      <MotionDiv
         variants={fadeUp}
         initial="hidden"
         animate="visible"
@@ -34,7 +34,7 @@ export default function MarketingPageWrapper({
         <div className="prose prose-neutral max-w-none dark:prose-invert">
           {children}
         </div>
-      </motion.div>
+      </MotionDiv>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv } from "@/components/motion/motion"
 import { format } from "date-fns"
 import { motion } from "framer-motion"
 import {
@@ -79,7 +79,7 @@ function MoodboardCard({
   const [faviconError, setFaviconError] = useState(false)
 
   return (
-    <motion.div
+    <MotionDiv
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
@@ -214,6 +214,6 @@ function MoodboardCard({
 
       </div>
 
-    </motion.div>
+    </MotionDiv>
   )
 }

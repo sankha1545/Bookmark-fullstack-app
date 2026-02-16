@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv } from "@/components/motion/motion"
 import { motion } from "framer-motion"
 import { fadeUp, staggerContainer } from "../animations"
 import { Check, Sparkles } from "lucide-react"
@@ -14,7 +14,7 @@ export default function PricingSection() {
       
       <div className="absolute left-[-200px] bottom-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl" />
 
-      <motion.div
+      <MotionDiv
         variants={staggerContainer}
         initial="hidden"
         whileInView="visible"
@@ -22,7 +22,7 @@ export default function PricingSection() {
         className="relative z-10 max-w-6xl mx-auto space-y-20"
       >
         
-        <motion.div
+        <MotionDiv
           variants={fadeUp}
           className="text-center max-w-3xl mx-auto space-y-6"
         >
@@ -34,13 +34,13 @@ export default function PricingSection() {
             Built to be accessible for everyone.
             Start free — scale when you need more.
           </p>
-        </motion.div>
+        </MotionDiv>
 
       
         <div className="grid md:grid-cols-2 gap-12">
 
          
-          <motion.div
+          <MotionDiv
             variants={fadeUp}
             className="p-10 rounded-2xl border bg-card shadow-sm"
           >
@@ -82,10 +82,10 @@ export default function PricingSection() {
             <Button size="lg" className="w-full">
               Get Started
             </Button>
-          </motion.div>
+          </MotionDiv>
 
          
-          <motion.div
+          <MotionDiv
             variants={fadeUp}
             className="relative p-10 rounded-2xl border-2 border-primary bg-card shadow-lg"
           >
@@ -133,18 +133,18 @@ export default function PricingSection() {
             <Button size="lg" variant="outline" className="w-full">
               Join Waitlist
             </Button>
-          </motion.div>
+          </MotionDiv>
         </div>
 
       
-        <motion.div
+        <MotionDiv
           variants={fadeUp}
           className="text-center text-sm text-muted-foreground pt-8"
         >
           No hidden fees. No credit card required.
           Cancel anytime.
-        </motion.div>
-      </motion.div>
+        </MotionDiv>
+      </MotionDiv>
     </section>
   )
 }

@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv } from "@/components/motion/motion"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { fadeUp } from "../animations"
@@ -16,7 +16,7 @@ export default function CTASection() {
       <div className="absolute left-[-200px] top-10 w-[500px] h-[500px] bg-white/10 rounded-full blur-3xl" />
       <div className="absolute right-[-200px] bottom-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-3xl" />
 
-      <motion.div
+      <MotionDiv
         variants={fadeUp}
         initial="hidden"
         whileInView="visible"
@@ -76,7 +76,7 @@ export default function CTASection() {
             No credit card required. Cancel anytime. Your data remains yours.
           </p>
         </div>
-      </motion.div>
+      </MotionDiv>
     </section>
   )
 }

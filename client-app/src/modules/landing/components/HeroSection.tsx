@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv , MotionH1 , MotionP } from "@/components/motion/motion"
 import { motion } from "framer-motion"
 import { fadeUp, staggerContainer } from "../animations"
 import { Button } from "@/components/ui/button"
@@ -14,14 +14,14 @@ export default function HeroSection() {
       <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
       <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
-      <motion.div
+      <MotionDiv
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
         className="relative z-10 max-w-5xl space-y-10"
       >
        
-        <motion.h1
+        <MotionH1
           variants={fadeUp}
           className="text-5xl md:text-6xl font-bold leading-tight tracking-tight"
         >
@@ -29,20 +29,20 @@ export default function HeroSection() {
           <span className="block text-primary mt-2">
             Smarter & Securely
           </span>
-        </motion.h1>
+        </MotionH1>
 
        
-        <motion.p
+        <MotionP
           variants={fadeUp}
           className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto"
         >
           Smart Bookmark is a real-time bookmark manager built
           for modern users. Secure authentication, instant sync,
           and cloud-powered reliability — all in one simple interface.
-        </motion.p>
+        </MotionP>
 
        
-        <motion.div
+        <MotionDiv
           variants={fadeUp}
           className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground"
         >
@@ -60,10 +60,10 @@ export default function HeroSection() {
             <Cloud size={16} />
             Cloud-Based Infrastructure
           </span>
-        </motion.div>
+        </MotionDiv>
 
         {/* CTA Buttons */}
-        <motion.div
+        <MotionDiv
           variants={fadeUp}
           className="flex flex-col sm:flex-row justify-center gap-6 pt-4"
         >
@@ -85,24 +85,24 @@ export default function HeroSection() {
               Learn More
             </Button>
           </Link>
-        </motion.div>
+        </MotionDiv>
 
         
-        <motion.div
+        <MotionDiv
           variants={fadeUp}
           className="pt-6 text-sm text-muted-foreground"
         >
           No credit card required · Free forever plan · Built with Next.js & Supabase
-        </motion.div>
+        </MotionDiv>
 
         
-        <motion.div
+        <MotionDiv
           variants={fadeUp}
           className="pt-12 text-xs text-muted-foreground animate-bounce"
         >
           ↓ Scroll to explore
-        </motion.div>
-      </motion.div>
+        </MotionDiv>
+      </MotionDiv>
     </section>
   )
 }

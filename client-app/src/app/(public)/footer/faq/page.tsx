@@ -1,4 +1,5 @@
 "use client"
+import { MotionDiv , MotionP} from "@/components/motion/motion"
 
 import { useState, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -89,7 +90,7 @@ export default function FAQPage() {
         <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
         <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
-        <motion.div
+        <MotionDiv
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
@@ -97,7 +98,7 @@ export default function FAQPage() {
         >
 
           {/* HERO HEADER */}
-          <motion.div variants={fadeUp} className="text-center space-y-6">
+          <MotionDiv variants={fadeUp} className="text-center space-y-6">
             <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
               Frequently Asked
               <span className="block text-primary mt-2">Questions</span>
@@ -123,10 +124,10 @@ export default function FAQPage() {
                 Cloud Infrastructure
               </span>
             </div>
-          </motion.div>
+          </MotionDiv>
 
           {/* SEARCH BAR */}
-          <motion.div variants={fadeUp} className="relative max-w-xl mx-auto">
+          <MotionDiv variants={fadeUp} className="relative max-w-xl mx-auto">
             <Search className="absolute left-3 top-3 text-muted-foreground" size={18} />
             <Input
               placeholder="Search questions..."
@@ -134,19 +135,19 @@ export default function FAQPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-          </motion.div>
+          </MotionDiv>
 
           {/* FAQ LIST */}
-          <motion.div variants={staggerContainer} className="space-y-4">
+          <MotionDiv variants={staggerContainer} className="space-y-4">
 
             {filteredFAQs.length === 0 && (
-              <motion.p variants={fadeUp} className="text-center text-muted-foreground">
+              <MotionP variants={fadeUp} className="text-center text-muted-foreground">
                 No matching results found.
-              </motion.p>
+              </MotionP>
             )}
 
             {filteredFAQs.map((faq, index) => (
-              <motion.div
+              <MotionDiv
                 key={faq.question}
                 variants={fadeUp}
                 className="border rounded-xl bg-card shadow-sm overflow-hidden"
@@ -175,7 +176,7 @@ export default function FAQPage() {
 
                 <AnimatePresence>
                   {openIndex === index && (
-                    <motion.div
+                    <MotionDiv
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
@@ -183,15 +184,15 @@ export default function FAQPage() {
                       className="px-6 pb-6 text-muted-foreground leading-relaxed"
                     >
                       {faq.answer}
-                    </motion.div>
+                    </MotionDiv>
                   )}
                 </AnimatePresence>
-              </motion.div>
+              </MotionDiv>
             ))}
-          </motion.div>
+          </MotionDiv>
 
           {/* CTA SECTION */}
-          <motion.div
+          <MotionDiv
             variants={fadeUp}
             className="text-center space-y-6 pt-16 border-t"
           >
@@ -220,9 +221,9 @@ export default function FAQPage() {
             <p className="text-xs text-muted-foreground pt-4">
               No credit card required · Free forever plan · Built with Next.js & Supabase
             </p>
-          </motion.div>
+          </MotionDiv>
 
-        </motion.div>
+        </MotionDiv>
       </section>
 
       <Footer />

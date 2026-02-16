@@ -1,4 +1,5 @@
 "use client"
+import { MotionDiv } from "@/components/motion/motion"
 
 import { motion } from "framer-motion"
 import { GoogleLoginButton } from "@/modules/auth/components/GoogleLoginButton"
@@ -16,7 +17,7 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-6xl grid md:grid-cols-2 gap-16 items-center">
 
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
@@ -57,10 +58,10 @@ export default function LoginPage() {
           <p className="text-xs text-muted-foreground pt-4">
             Built with Next.js App Router and Supabase Realtime.
           </p>
-        </motion.div>
+        </MotionDiv>
 
       
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
@@ -111,7 +112,7 @@ export default function LoginPage() {
 
             </CardContent>
           </Card>
-        </motion.div>
+        </MotionDiv>
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv,MotionForm } from "@/components/motion/motion"
 import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -172,22 +172,22 @@ export default function ContactPage() {
       <Navbar />
 
       <section className="min-h-screen px-4 sm:px-6 lg:px-8 py-20">
-        <motion.div
+        <MotionDiv
           initial="hidden"
           animate="visible"
           variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
           className="max-w-6xl mx-auto space-y-12"
         >
-          <motion.div variants={fadeUp} className="text-center space-y-4">
+          <MotionDiv variants={fadeUp} className="text-center space-y-4">
             <h1 className="text-4xl sm:text-6xl font-bold">
               Get in Touch
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               We'd love to hear from you.
             </p>
-          </motion.div>
+          </MotionDiv>
 
-          <motion.form
+          <MotionForm
             variants={fadeUp}
             onSubmit={handleSubmit}
             className="bg-white dark:bg-neutral-900 p-8 rounded-2xl shadow-xl space-y-5"
@@ -264,8 +264,8 @@ export default function ContactPage() {
             >
               {submitting ? "Sending..." : "Send Message"}
             </Button>
-          </motion.form>
-        </motion.div>
+          </MotionForm>
+        </MotionDiv>
       </section>
 
       <Footer />

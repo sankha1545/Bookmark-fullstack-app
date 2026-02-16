@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv } from "@/components/motion/motion"
 import { motion } from "framer-motion"
 import { fadeUp, staggerContainer } from "@/modules/landing/animations"
 import { Button } from "@/components/ui/button"
@@ -19,14 +19,14 @@ export default function BlogPage() {
       <div className="absolute left-[-250px] top-0 w-[600px] h-[600px] bg-yellow-300/30 rounded-full blur-3xl animate-pulse" />
       <div className="absolute right-[-250px] bottom-0 w-[600px] h-[600px] bg-pink-400/30 rounded-full blur-3xl animate-pulse" />
 
-      <motion.div
+      <MotionDiv
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
         className="relative z-10 max-w-6xl mx-auto space-y-20"
       >
         {/* Header */}
-        <motion.div variants={fadeUp} className="text-center space-y-6">
+        <MotionDiv variants={fadeUp} className="text-center space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold">
             Smart Bookmark
             <span className="block text-primary mt-2">Blog & Insights</span>
@@ -36,10 +36,10 @@ export default function BlogPage() {
             Engineering deep-dives, design thinking, and product updates
             from the team building Smart Bookmark.
           </p>
-        </motion.div>
+        </MotionDiv>
 
         {/* Featured */}
-        <motion.div variants={fadeUp}>
+        <MotionDiv variants={fadeUp}>
           <Card className="overflow-hidden shadow-xl">
             <img
               src={blogPosts[0].cover}
@@ -67,15 +67,15 @@ export default function BlogPage() {
               </Link>
             </CardContent>
           </Card>
-        </motion.div>
+        </MotionDiv>
 
         {/* Grid */}
-        <motion.div
+        <MotionDiv
           variants={staggerContainer}
           className="grid md:grid-cols-3 gap-8"
         >
           {blogPosts.slice(1).map((post) => (
-            <motion.div key={post.slug} variants={fadeUp}>
+            <MotionDiv key={post.slug} variants={fadeUp}>
               <Card className="h-full hover:shadow-lg transition">
                 <img
                   src={post.cover}
@@ -103,12 +103,12 @@ export default function BlogPage() {
                   </Link>
                 </CardContent>
               </Card>
-            </motion.div>
+            </MotionDiv>
           ))}
-        </motion.div>
+        </MotionDiv>
 
         {/* Newsletter */}
-        <motion.div
+        <MotionDiv
           variants={fadeUp}
           className="bg-muted/40 rounded-2xl p-10 text-center space-y-6"
         >
@@ -124,9 +124,9 @@ export default function BlogPage() {
             <Input placeholder="Enter your email" className="max-w-xs" />
             <Button>Subscribe</Button>
           </div>
-        </motion.div>
+        </MotionDiv>
 
-      </motion.div>
+      </MotionDiv>
       <br/>
        <Footer />
     </section>

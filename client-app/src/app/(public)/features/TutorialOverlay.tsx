@@ -7,6 +7,8 @@ import TutorialStepCard from "./TutorialStepCard"
 import Spotlight from "./Spotlight"
 import { Button } from "@/components/ui/button"
 
+const MotionDiv = motion.div as any
+
 export default function TutorialOverlay({
   open,
   onClose,
@@ -14,34 +16,50 @@ export default function TutorialOverlay({
   open: boolean
   onClose: () => void
 }) {
+
   const [step, setStep] = useState(0)
 
   const next = () => {
+
     if (step < tutorialSteps.length - 1) {
+
       setStep(step + 1)
+
     } else {
+
       onClose()
       setStep(0)
+
     }
+
   }
 
   const prev = () => {
+
     if (step > 0) setStep(step - 1)
+
   }
 
   return (
+
     <AnimatePresence>
+
       {open && (
-        <motion.div
+
+        <MotionDiv
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
         >
+
           <Spotlight step={step} />
 
           <div className="relative z-10 space-y-6">
+
             <AnimatePresence mode="wait">
+
               <TutorialStepCard
                 key={step}
                 step={step}
@@ -49,9 +67,11 @@ export default function TutorialOverlay({
                 {...tutorialSteps[step]}
                 Icon={tutorialSteps[step].icon}
               />
+
             </AnimatePresence>
 
             <div className="flex justify-center gap-4">
+
               <Button variant="ghost" onClick={onClose}>
                 Skip
               </Button>
@@ -69,10 +89,17 @@ export default function TutorialOverlay({
                   ? "Finish"
                   : "Next"}
               </Button>
+
             </div>
+
           </div>
-        </motion.div>
+
+        </MotionDiv>
+
       )}
+
     </AnimatePresence>
+
   )
+
 }

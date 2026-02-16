@@ -1,4 +1,5 @@
 "use client";
+import { MotionDiv } from "@/components/motion/motion"
 
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
@@ -131,7 +132,7 @@ export default function ProfileModal({
 
   return (
     <AnimatePresence>
-      <motion.div
+      <MotionDiv
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -139,7 +140,7 @@ export default function ProfileModal({
         transition={{ duration: 0.2 }}
         onMouseDown={onClose}
       >
-        <motion.div
+        <MotionDiv
           role="dialog"
           aria-modal="true"
           aria-labelledby="profile-modal-title"
@@ -149,7 +150,8 @@ export default function ProfileModal({
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.96, y: 30 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          onMouseDown={(e) => e.stopPropagation()}
+         onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
+
         >
           {/* ========================= Header ========================= */}
           <div className="p-5 sm:p-6 border-b flex items-start justify-between gap-4">
@@ -296,8 +298,8 @@ export default function ProfileModal({
               </p>
             </div>
           </div>
-        </motion.div>
-      </motion.div>
+        </MotionDiv>
+      </MotionDiv>
     </AnimatePresence>
   );
 }

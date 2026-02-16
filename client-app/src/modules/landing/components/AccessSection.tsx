@@ -1,5 +1,5 @@
 "use client"
-
+import { MotionDiv } from "@/components/motion/motion"
 import { motion } from "framer-motion"
 import { fadeUp, staggerContainer } from "../animations"
 import {
@@ -22,7 +22,7 @@ export default function AccessSection() {
       
       <div className="absolute right-[-200px] top-20 w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-3xl" />
 
-      <motion.div
+      <MotionDiv
         variants={staggerContainer}
         initial="hidden"
         whileInView="visible"
@@ -30,7 +30,7 @@ export default function AccessSection() {
         className="relative z-10 max-w-6xl mx-auto space-y-20"
       >
         
-        <motion.div
+        <MotionDiv
           variants={fadeUp}
           className="text-center max-w-3xl mx-auto space-y-6"
         >
@@ -46,13 +46,13 @@ export default function AccessSection() {
             devices, and sessions — delivering instant updates
             wherever you are.
           </p>
-        </motion.div>
+        </MotionDiv>
 
       
         <div className="grid md:grid-cols-2 gap-16 items-start">
 
         
-          <motion.div variants={fadeUp} className="space-y-6">
+          <MotionDiv variants={fadeUp} className="space-y-6">
             <h3 className="text-2xl font-semibold">
               Real-Time Multi-Device Sync
             </h3>
@@ -77,10 +77,10 @@ export default function AccessSection() {
                 Cloud-native infrastructure
               </li>
             </ul>
-          </motion.div>
+          </MotionDiv>
 
           
-          <motion.div variants={fadeUp} className="space-y-6">
+          <MotionDiv variants={fadeUp} className="space-y-6">
             <h3 className="text-2xl font-semibold">
               Browser & Device Agnostic
             </h3>
@@ -104,11 +104,11 @@ export default function AccessSection() {
                 Mobile-friendly design
               </li>
             </ul>
-          </motion.div>
+          </MotionDiv>
         </div>
 
       
-        <motion.div
+        <MotionDiv
           variants={staggerContainer}
           className="grid md:grid-cols-3 gap-8 pt-12"
         >
@@ -132,7 +132,7 @@ export default function AccessSection() {
                 "Fast loading, instant UI updates, minimal latency.",
             },
           ].map((feature) => (
-            <motion.div
+            <MotionDiv
               key={feature.title}
               variants={fadeUp}
               className="p-6 rounded-xl border bg-card shadow-sm hover:shadow-md transition"
@@ -146,12 +146,12 @@ export default function AccessSection() {
               <p className="text-sm text-muted-foreground">
                 {feature.description}
               </p>
-            </motion.div>
+            </MotionDiv>
           ))}
-        </motion.div>
+        </MotionDiv>
 
         
-        <motion.div
+        <MotionDiv
           variants={fadeUp}
           className="text-center pt-8 space-y-4"
         >
@@ -163,8 +163,8 @@ export default function AccessSection() {
           <Button size="lg">
             Experience Real-Time Sync
           </Button>
-        </motion.div>
-      </motion.div>
+        </MotionDiv>
+      </MotionDiv>
     </section>
   )
 }
